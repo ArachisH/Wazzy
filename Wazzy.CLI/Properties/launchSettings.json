@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Wazzy.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\HAJ\\Desktop\\H2020\\habbo2020-global-prod.wasm.code.unityweb\""
+      "commandName": "Project"
     }
   }
 }
