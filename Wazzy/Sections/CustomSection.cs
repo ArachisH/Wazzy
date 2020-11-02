@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+
+using Wazzy.IO;
 
 namespace Wazzy.Sections
 {
@@ -10,11 +12,15 @@ namespace Wazzy.Sections
         public CustomSection(WASMModule module)
             : base(module, WASMSectionId.CustomSection)
         {
-            int nameLength = module.Input.Read7BitEncodedInt();
-            Data = module.Input.ReadBytes(nameLength);
-            if (nameLength == Data.Length) // Otherwise, a blob of data was provided as the 'name' of this custom section.
+            int possibleNameLength = module.Input.Read7BitEncodedInt();
+            Name = module.Input.ReadString(possibleNameLength);
+
+            int leftOverSectionData = Size - possibleNameLength - WASMReader.Get7BitEncodedIntSize(possibleNameLength);
+            Data = module.Input.ReadBytes(leftOverSectionData);
+
+            if (leftOverSectionData != Data.Length)
             {
-                Name = Encoding.UTF8.GetString(Data);
+                throw new Exception("Failed to properly read custom section data");
             }
         }
     }
