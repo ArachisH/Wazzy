@@ -5,8 +5,7 @@
         protected readonly WASMModule _module;
 
         public int Size { get; }
-        public long EndPosition { get; }
-        public long StartPosition { get; }
+        public int Start { get; }
 
         public WASMSectionId Id { get; }
 
@@ -16,8 +15,7 @@
 
             Id = id;
             Size = module.Input.Read7BitEncodedInt();
-            StartPosition = module.Input.Position;
-            EndPosition = module.Input.Position + Size;
+            Start = module.Input.Position;
         }
     }
 }
