@@ -15,8 +15,9 @@ namespace Wazzy.IO
             get => (int)BaseStream.Position;
             set => BaseStream.Position = value;
         }
+        public int Length => (int)BaseStream.Length;
 
-        public WASMReader( byte[] data)
+        public WASMReader(byte[] data)
             : base(new MemoryStream(data))
         { }
         public WASMReader(Stream input)
@@ -35,6 +36,8 @@ namespace Wazzy.IO
         }
         public Type ReadValueType() => WASMType.GetType(ReadByte());
         new public int Read7BitEncodedInt() => base.Read7BitEncodedInt();
+        public string Read7BitEncodedString() => ReadString(Read7BitEncodedInt());
+        public string ReadString(int length) => Encoding.UTF8.GetString(ReadBytes(length));
         public byte[] ReadBytesUntil(int bufferSize, int bufferIncrementSize, byte endMark = 0x00)
         {
             byte[] data = null;
@@ -57,6 +60,17 @@ namespace Wazzy.IO
             }
             return data;
         }
-        public string Read7BitEncodedString() => Encoding.UTF8.GetString(ReadBytes(Read7BitEncodedInt()));
+
+        public static int Get7BitEncodedIntSize(int value)
+        {
+            int size = 1;
+            var uValue = (uint)value;
+            while (uValue >= 0x80)
+            {
+                size++;
+                uValue >>= 7;
+            }
+            return size;
+        }
     }
 }
