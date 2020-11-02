@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30621.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wazzy", "Wazzy\Wazzy.csproj", "{009A285D-BBE1-4CAB-B277-C5CEBED757D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wazzy.CLI", "Wazzy.CLI\Wazzy.CLI.csproj", "{5A46906F-18EE-4B96-A528-7A7ADDA1E38B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{009A285D-BBE1-4CAB-B277-C5CEBED757D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{009A285D-BBE1-4CAB-B277-C5CEBED757D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{009A285D-BBE1-4CAB-B277-C5CEBED757D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{009A285D-BBE1-4CAB-B277-C5CEBED757D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A46906F-18EE-4B96-A528-7A7ADDA1E38B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A46906F-18EE-4B96-A528-7A7ADDA1E38B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A46906F-18EE-4B96-A528-7A7ADDA1E38B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A46906F-18EE-4B96-A528-7A7ADDA1E38B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7173570C-BB76-43D2-8665-9343805EF433}
+	EndGlobalSection
+EndGlobal
