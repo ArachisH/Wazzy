@@ -2,6 +2,8 @@
 
 using Wazzy.IO;
 using Wazzy.Bytecode;
+using Wazzy.Bytecode.Instructions;
+using Wazzy.Bytecode.Instructions.Numeric;
 
 namespace Wazzy.Sections.Subsections
 {
@@ -12,6 +14,16 @@ namespace Wazzy.Sections.Subsections
         public byte[] Package { get; set; }
         public List<WASMInstruction> Expression { get; }
 
+        public DataSubsection(int offset, byte[] package)
+        {
+            Offset = offset;
+            Package = package;
+            Expression = new List<WASMInstruction>()
+            {
+                new ConstantInt32Ins(offset),
+                new EndIns()
+            };
+        }
         public DataSubsection(WASMModule module)
         {
             MemoryIndex = module.Input.Read7BitEncodedInt();
