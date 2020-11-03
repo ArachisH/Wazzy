@@ -24,7 +24,7 @@ namespace Wazzy.Sections
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
         {
             output.Write7BitEncodedString(Name);
             output.Write(Data);

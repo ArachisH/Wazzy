@@ -12,7 +12,7 @@ namespace Wazzy.Sections
             FunctionId = module.Input.Read7BitEncodedInt();
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
         {
             output.Write7BitEncodedInt(FunctionId);
         }

@@ -26,7 +26,7 @@ namespace Wazzy.Sections
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
         {
             int exportCount = Math.Min(Names.Length, Math.Min(Tags.Length, Indices.Length));
             output.Write7BitEncodedInt(exportCount);

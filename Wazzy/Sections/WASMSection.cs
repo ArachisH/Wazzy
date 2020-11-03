@@ -30,7 +30,7 @@ namespace Wazzy.Sections
             using (var bodyMemory = new MemoryStream())
             using (var bodyWriter = new WASMWriter(bodyMemory))
             {
-                WriteBodyTo(bodyWriter);
+                WriteBodyTo(bodyWriter, output.Position);
 
                 bodyWriter.Flush();
                 bodyMemory.Flush();
@@ -40,6 +40,6 @@ namespace Wazzy.Sections
             output.Write7BitEncodedInt(bodyData.Length);
             output.Write(bodyData);
         }
-        protected abstract void WriteBodyTo(WASMWriter output);
+        protected abstract void WriteBodyTo(WASMWriter output, int globalPosition);
     }
 }
