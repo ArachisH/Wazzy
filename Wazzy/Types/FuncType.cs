@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 
+using Wazzy.IO;
+
 namespace Wazzy.Types
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -31,9 +33,27 @@ namespace Wazzy.Types
                 Type paramType = module.Input.ReadValueType();
                 ParameterTypes.Add(paramType);
             }
-            if (module.Input.Read7BitEncodedInt() > 0) // Does this function return something?
+
+            bool hasResultType = module.Input.ReadBoolean();
+            if (hasResultType)
             {
                 ResultType = module.Input.ReadValueType();
+            }
+        }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(ParameterTypes.Count);
+            foreach (Type parameterType in ParameterTypes)
+            {
+                output.Write(parameterType);
+            }
+
+            bool hasResultType = ResultType != null;
+            output.Write(hasResultType);
+            if (hasResultType)
+            {
+                output.Write(ResultType);
             }
         }
     }
