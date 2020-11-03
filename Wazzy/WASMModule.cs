@@ -13,7 +13,7 @@ namespace Wazzy
     public class WASMModule : IEnumerable<WASMSection>, IDisposable
     {
         private bool _disposed;
-        private readonly Dictionary<WASMSectionId, WASMSection> _sections;
+        private readonly SortedDictionary<WASMSectionId, WASMSection> _sections;
 
         internal WASMReader Input { get; }
 
@@ -104,7 +104,7 @@ namespace Wazzy
 
         public WASMModule()
         {
-            _sections = new Dictionary<WASMSectionId, WASMSection>();
+            _sections = new SortedDictionary<WASMSectionId, WASMSection>();
             CustomSections = new List<CustomSection>();
         }
         public WASMModule(string path)
@@ -131,6 +131,9 @@ namespace Wazzy
             Version = Input.ReadUInt32();
         }
 
+        public bool ContainsSection(WASMSectionId id) => _sections.ContainsKey(id);
+        public bool TryGetSection(WASMSectionId id, out WASMSection section) => _sections.TryGetValue(id, out section);
+
         public void Disassemble()
         {
             while (Input.BaseStream.CanRead && Input.BaseStream.Position != Input.BaseStream.Length)
@@ -147,8 +150,29 @@ namespace Wazzy
                 }
             }
         }
-        public bool ContainsSection(WASMSectionId id) => _sections.ContainsKey(id);
-        public bool TryGetSection(WASMSectionId id, out WASMSection section) => _sections.TryGetValue(id, out section);
+        public void Assemble(WASMWriter output)
+        {
+            output.Write(new byte[] { 0, (byte)'a', (byte)'s', (byte)'m' });
+            output.Write(Version);
+            foreach (WASMSection section in _sections.Values.Concat(CustomSections))
+            {
+                section.WriteTo(output);
+            }
+            output.Flush();
+        }
+
+        public byte[] ToArray()
+        {
+            using var output = new MemoryStream();
+            CopyTo(output);
+
+            return output.ToArray();
+        }
+        public void CopyTo(Stream output)
+        {
+            using var wasmOutput = new WASMWriter(output);
+            Assemble(wasmOutput);
+        }
 
         protected virtual WASMSection ParseSection(WASMSectionId id) => id switch
         {
@@ -185,6 +209,7 @@ namespace Wazzy
             _disposed = true;
         }
 
+        #region IEnumerable<T> Implementation
         public IEnumerator<WASMSection> GetEnumerator()
         {
             foreach (WASMSection section in CustomSections.Concat(_sections.Values))
@@ -193,5 +218,6 @@ namespace Wazzy
             }
         }
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        #endregion
     }
 }
