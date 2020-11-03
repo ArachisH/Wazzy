@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
 
@@ -13,7 +14,15 @@ namespace Wazzy.Types
         {
             get
             {
-                string signature = (ResultType?.Name ?? "void") + " Function(";
+                string results = ResultTypes.Count switch
+                {
+                    0 => "void",
+                    1 => ResultTypes[0].Name,
+
+                    _ => $"({string.Join(", ", ResultTypes.Select(t => t.Name))})"
+                };
+
+                string signature = results + " Function(";
                 for (int i = 0; i < ParameterTypes.Count; i++)
                 {
                     signature += $"{ParameterTypes[i].Name} local_{i}, ";
@@ -22,7 +31,7 @@ namespace Wazzy.Types
             }
         }
 
-        public Type ResultType { get; }
+        public List<Type> ResultTypes { get; }
         public List<Type> ParameterTypes { get; }
 
         public FuncType(WASMModule module)
@@ -34,10 +43,11 @@ namespace Wazzy.Types
                 ParameterTypes.Add(paramType);
             }
 
-            bool hasResultType = module.Input.ReadBoolean();
-            if (hasResultType)
+            ResultTypes = new List<Type>(module.Input.Read7BitEncodedInt());
+            for (int i = 0; i < ResultTypes.Capacity; i++)
             {
-                ResultType = module.Input.ReadValueType();
+                Type resultType = module.Input.ReadValueType();
+                ResultTypes.Add(resultType);
             }
         }
 
@@ -49,11 +59,10 @@ namespace Wazzy.Types
                 output.Write(parameterType);
             }
 
-            bool hasResultType = ResultType != null;
-            output.Write(hasResultType);
-            if (hasResultType)
+            output.Write7BitEncodedInt(ResultTypes.Count);
+            foreach (Type resultType in ResultTypes)
             {
-                output.Write(ResultType);
+                output.Write(resultType);
             }
         }
     }
