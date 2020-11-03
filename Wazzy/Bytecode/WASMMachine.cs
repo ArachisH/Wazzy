@@ -11,18 +11,18 @@ namespace Wazzy.Bytecode
             Stack = new Stack<object>();
         }
 
-        public static Stack<object> Execute(IList<WASMInstruction> expression)
+        public static Stack<object> Execute(IList<WASMInstruction> expression, WASMModule context)
         {
             var stack = new Stack<object>();
-            Execute(expression, stack);
+            Execute(expression, context, stack);
             return stack;
         }
-        public static void Execute(IList<WASMInstruction> expression, Stack<object> stack)
+        public static void Execute(IList<WASMInstruction> expression, WASMModule context, Stack<object> stack)
         {
             foreach (WASMInstruction instruction in expression)
             {
                 if (instruction.OP == OPCode.End) break;
-                instruction.Execute(stack);
+                instruction.Execute(stack, context);
             }
         }
     }
