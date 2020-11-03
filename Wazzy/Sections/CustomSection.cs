@@ -23,5 +23,11 @@ namespace Wazzy.Sections
                 throw new Exception("Failed to properly read custom section data");
             }
         }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedString(Name);
+            output.Write(Data);
+        }
     }
 }

@@ -1,6 +1,10 @@
-﻿namespace Wazzy.Sections
+﻿using System.IO;
+
+using Wazzy.IO;
+
+namespace Wazzy.Sections
 {
-    public abstract class WASMSection
+    public abstract class WASMSection : WASMObject
     {
         protected readonly WASMModule _module;
 
@@ -17,5 +21,25 @@
             Size = module.Input.Read7BitEncodedInt();
             Start = module.Input.Position;
         }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            output.Write((byte)Id);
+
+            byte[] bodyData;
+            using (var bodyMemory = new MemoryStream())
+            using (var bodyWriter = new WASMWriter(bodyMemory))
+            {
+                WriteBodyTo(bodyWriter);
+
+                bodyWriter.Flush();
+                bodyMemory.Flush();
+                bodyData = bodyMemory.ToArray();
+            }
+
+            output.Write7BitEncodedInt(bodyData.Length);
+            output.Write(bodyData);
+        }
+        protected abstract void WriteBodyTo(WASMWriter output);
     }
 }

@@ -7,7 +7,7 @@ using Wazzy.Bytecode.Instructions.Variable;
 
 namespace Wazzy.Bytecode
 {
-    public abstract class WASMInstruction
+    public abstract class WASMInstruction : WASMObject
     {
         public OPCode OP { get; }
 
@@ -21,6 +21,14 @@ namespace Wazzy.Bytecode
             Execute(stack, null);
         }
         public virtual void Execute(Stack<object> stack, WASMModule context)
+        { }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            output.Write((byte)OP);
+            WriteBodyTo(output);
+        }
+        protected virtual void WriteBodyTo(WASMWriter output)
         { }
 
         public static WASMInstruction Create(WASMReader input)

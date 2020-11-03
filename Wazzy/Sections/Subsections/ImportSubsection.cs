@@ -1,11 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
+using Wazzy.IO;
 using Wazzy.Types;
 
 namespace Wazzy.Sections.Subsections
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public class ImportSubsection
+    public class ImportSubsection : WASMObject
     {
         public string Name { get; }
         public object Value { get; }
@@ -24,8 +26,20 @@ namespace Wazzy.Sections.Subsections
                 ImportDesc.Table => new TableType(module),
                 ImportDesc.Memory => new MemoryType(module),
                 ImportDesc.Global => new GlobalType(module),
-                _ => null
+                _ => throw new Exception("Failed to identify import type.")
             };
+        }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            output.Write7BitEncodedString(Module);
+            output.Write7BitEncodedString(Name);
+            output.Write((byte)Description);
+            if (Description == ImportDesc.Function)
+            {
+                output.Write7BitEncodedInt((int)Value);
+            }
+            else ((WASMObject)Value).WriteTo(output);
         }
     }
 }

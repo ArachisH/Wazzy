@@ -26,5 +26,10 @@ namespace Wazzy.Bytecode.Instructions.Numeric
         {
             stack.Push(Constant);
         }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(Constant);
+        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using Wazzy.IO;
-using Wazzy.Sections.Subsections;
 
 namespace Wazzy.Bytecode.Instructions.Variable
 {
@@ -17,13 +16,12 @@ namespace Wazzy.Bytecode.Instructions.Variable
 
         public override void Execute(Stack<object> stack, WASMModule context)
         {
-            // TODO: Implement instruction execution
-            if (Id < context.GlobalSec.Count)
-            {
-                WASMMachine.Execute(context.GlobalSec[Id].Expression, stack);
-                if (stack.Peek() is GlobalSubsection globalSubsec) // ?!?!
-                { }
-            }
+            WASMMachine.Execute(context.GlobalSec[Id].Expression, context, stack);
+        }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(Id);
         }
     }
 }

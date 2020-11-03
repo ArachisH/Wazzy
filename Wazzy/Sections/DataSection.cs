@@ -1,4 +1,5 @@
-﻿using Wazzy.Sections.Subsections;
+﻿using Wazzy.IO;
+using Wazzy.Sections.Subsections;
 
 namespace Wazzy.Sections
 {
@@ -11,6 +12,15 @@ namespace Wazzy.Sections
             for (int i = 0; i < Subsections.Capacity; i++)
             {
                 Add(new DataSubsection(module));
+            }
+        }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(Subsections.Count);
+            foreach (DataSubsection data in Subsections)
+            {
+                data.WriteTo(output);
             }
         }
     }

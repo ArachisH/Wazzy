@@ -1,8 +1,10 @@
 ﻿using System;
 
+using Wazzy.IO;
+
 namespace Wazzy.Types
 {
-    public abstract class WASMType
+    public abstract class WASMType : WASMObject
     {
         private static readonly Type[] _supportedTypes;
 

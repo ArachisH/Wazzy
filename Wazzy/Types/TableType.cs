@@ -1,4 +1,6 @@
-﻿namespace Wazzy.Types
+﻿using Wazzy.IO;
+
+namespace Wazzy.Types
 {
     public class TableType : WASMType
     {
@@ -9,6 +11,12 @@
         {
             ElementType = module.Input.ReadByte(); // WASM v1 only supports funcref(0x70), but will perhaps support more in the future.
             Limits = new Limits(module);
+        }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            output.Write(ElementType);
+            Limits.WriteTo(output);
         }
     }
 }

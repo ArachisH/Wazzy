@@ -1,4 +1,6 @@
-﻿namespace Wazzy.Sections
+﻿using Wazzy.IO;
+
+namespace Wazzy.Sections
 {
     public class FunctionSection : WASMSectionEnumerable<int>
     {
@@ -9,6 +11,15 @@
             for (int i = 0; i < Subsections.Capacity; i++)
             {
                 Subsections.Add(module.Input.Read7BitEncodedInt());
+            }
+        }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(Subsections.Count);
+            foreach (int typeIndex in Subsections)
+            {
+                output.Write7BitEncodedInt(typeIndex);
             }
         }
     }

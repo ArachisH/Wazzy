@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 
+using Wazzy.IO;
+
 namespace Wazzy.Types
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -18,6 +20,16 @@ namespace Wazzy.Types
             if (HasMaximum)
             {
                 Maxiumum = module.Input.Read7BitEncodedInt();
+            }
+        }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            output.Write(HasMaximum);
+            output.Write7BitEncodedInt(Minimum);
+            if (HasMaximum)
+            {
+                output.Write7BitEncodedInt(Maxiumum);
             }
         }
     }

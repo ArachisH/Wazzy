@@ -1,4 +1,5 @@
-﻿using Wazzy.Types;
+﻿using Wazzy.IO;
+using Wazzy.Types;
 
 namespace Wazzy.Sections
 {
@@ -11,6 +12,15 @@ namespace Wazzy.Sections
             for (int i = 0; i < Subsections.Capacity; i++)
             {
                 Add(new TableType(module));
+            }
+        }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(Subsections.Count);
+            foreach (TableType table in Subsections)
+            {
+                table.WriteTo(output);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Wazzy.Types;
+﻿using Wazzy.IO;
+using Wazzy.Types;
 
 namespace Wazzy.Sections
 {
@@ -16,6 +17,16 @@ namespace Wazzy.Sections
                 byte id = module.Input.ReadByte();
                 if (id != 0x60) System.Diagnostics.Debugger.Break();
                 Add(new FuncType(module));
+            }
+        }
+
+        protected override void WriteBodyTo(WASMWriter output)
+        {
+            output.Write7BitEncodedInt(Subsections.Count);
+            foreach (FuncType functionType in Subsections)
+            {
+                output.Write((byte)0x60);
+                functionType.WriteTo(output);
             }
         }
     }

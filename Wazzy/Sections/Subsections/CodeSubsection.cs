@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 
+using Wazzy.IO;
 using Wazzy.Types;
 
 namespace Wazzy.Sections.Subsections
 {
-    public class CodeSubsection
+    public class CodeSubsection : WASMObject
     {
         public byte[] Body { get; set; }
         public List<Local> Locals { get; }
@@ -19,6 +20,18 @@ namespace Wazzy.Sections.Subsections
                 Locals.Add(new Local(module));
             }
             Body = module.Input.ReadBytes(size - (module.Input.Position - start));
+        }
+
+        public override void WriteTo(WASMWriter output)
+        {
+            int size = WASMReader.Get7BitEncodedIntSize(Locals.Count) + Body.Length;
+            byte[] localsData = ToBytes(Locals);
+            size += localsData.Length;
+
+            output.Write7BitEncodedInt(size);
+            output.Write7BitEncodedInt(Locals.Count);
+            output.Write(localsData);
+            output.Write(Body);
         }
     }
 }
