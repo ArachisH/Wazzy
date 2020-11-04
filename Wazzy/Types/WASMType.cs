@@ -14,5 +14,6 @@ namespace Wazzy.Types
         }
 
         public static Type GetType(byte valueTypeId) => _supportedTypes[127 - valueTypeId];
+        public static bool IsSupportedType(int valueTypeId) => valueTypeId >= 124 && valueTypeId <= 127;
     }
 }
