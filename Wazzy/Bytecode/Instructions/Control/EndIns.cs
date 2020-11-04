@@ -1,4 +1,4 @@
-﻿namespace Wazzy.Bytecode.Instructions
+﻿namespace Wazzy.Bytecode.Instructions.Control
 {
     public class EndIns : WASMInstruction
     {

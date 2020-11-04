@@ -62,7 +62,7 @@
         ConstantFloat32 = 0x43,     // <= {z float}
         ConstantFloat64 = 0x44,     // <= {z float}
 
-        i32_eqz = 0x45,
+        EqualsZeroInt32 = 0x45,
         i32_eq = 0x46,
         i32_ne = 0x47,
         i32_lt_s = 0x48,
@@ -99,14 +99,14 @@
         i32_clz = 0x67,
         i32_ctz = 0x68,
         i32_popcnt = 0x69,
-        i32_add = 0x6A,
+        AddInt32 = 0x6A,
         i32_sub = 0x6B,
         i32_mul = 0x6C,
         i32_div_s = 0x6D,
         i32_div_u = 0x6E,
         i32_rem_s = 0x6F,
         i32_rem_u = 0x70,
-        i32_and = 0x71,
+        AndInt32 = 0x71,
         i32_or = 0x72,
         i32_xor = 0x73,
         i32_shl = 0x74,

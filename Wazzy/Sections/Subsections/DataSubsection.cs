@@ -2,7 +2,7 @@
 
 using Wazzy.IO;
 using Wazzy.Bytecode;
-using Wazzy.Bytecode.Instructions;
+using Wazzy.Bytecode.Instructions.Control;
 using Wazzy.Bytecode.Instructions.Numeric;
 
 namespace Wazzy.Sections.Subsections

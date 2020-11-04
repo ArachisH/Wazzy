@@ -6,7 +6,7 @@ namespace Wazzy.Bytecode.Instructions.Variable
 {
     public class GetGlobalIns : WASMInstruction
     {
-        public int Id { get; }
+        public int Id { get; set; }
 
         public GetGlobalIns(WASMReader input)
             : base(OPCode.GetGlobal)
