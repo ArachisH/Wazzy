@@ -40,12 +40,24 @@ namespace Wazzy.IO
 
         new public void Write7BitEncodedInt(int value)
         {
-            base.Write7BitEncodedInt(value);
+            value |= 0;
+            while (true)
+            {
+                var b = (byte)(value & 0x7F);
+                value >>= 7;
+
+                if ((value == 0 && (b & 0x40) == 0) || (value == -1 && (b & 0x40) != 0))
+                {
+                    Write(b);
+                    return;
+                }
+                Write((byte)(b | 0x80));
+            }
         }
         public void Write7BitEncodedString(string value)
         {
             byte[] valueData = Encoding.UTF8.GetBytes(value);
-            base.Write7BitEncodedInt(valueData.Length);
+            Write7BitEncodedInt(valueData.Length);
             Write(valueData);
         }
     }
