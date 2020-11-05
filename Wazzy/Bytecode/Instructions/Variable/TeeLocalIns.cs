@@ -2,16 +2,16 @@
 
 namespace Wazzy.Bytecode.Instructions.Variable
 {
-    public class GetLocalIns : WASMInstruction
+    public class TeeLocalIns : WASMInstruction
     {
         public int Id { get; set; }
 
-        public GetLocalIns(int id = 0)
-            : base(OPCode.GetLocal)
+        public TeeLocalIns(int id = 0)
+            : base(OPCode.TeeLocal)
         {
             Id = id;
         }
-        public GetLocalIns(WASMReader input)
+        public TeeLocalIns(WASMReader input)
             : this(input.Read7BitEncodedInt())
         { }
 

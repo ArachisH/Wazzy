@@ -11,12 +11,12 @@
         Loop = 0x03,                // <= {blocktype, (instr)*, 0x0B}
         If = 0x04,                  // <= {blocktype, (instr)*, 0x05 ? <Else> : 0x0B}
         Else = 0x05,                // <= {(instr)*, 0x0B}
-        Br = 0x0C,                  // <= {labelidx u32}
-        Br_If = 0x0D,               // <= {labelidx u32}
+        Branch = 0x0C,                  // <= {labelidx u32}
+        BranchIf = 0x0D,               // <= {labelidx u32}
         Br_Table = 0x0E,            // <= {vec(labelidx u32), labelidx u32}
         Return = 0x0F,
         Call = 0x10,                // <= {funcidx u32}
-        Call_Indirect = 0x11,       // <= {typeidx u32, 0x00}
+        CallIndirect = 0x11,       // <= {typeidx u32, 0x00}
 
         // Parametric Instructions
         Drop = 0x1A,
@@ -63,12 +63,12 @@
         ConstantFloat64 = 0x44,     // <= {z float}
 
         EqualsZeroInt32 = 0x45,
-        i32_eq = 0x46,
-        i32_ne = 0x47,
+        EqualsInt32 = 0x46,
+        NotEqualInt32 = 0x47,
         i32_lt_s = 0x48,
-        i32_lt_u = 0x49,
-        i32_gt_s = 0x4A,
-        i32_gt_u = 0x4B,
+        LessThanUInt32 = 0x49,
+        GreaterThanSInt32 = 0x4A,
+        GreaterThanUInt32 = 0x4B,
         i32_le_s = 0x4C,
         i32_le_u = 0x4D,
         i32_ge_s = 0x4E,
@@ -100,18 +100,18 @@
         i32_ctz = 0x68,
         i32_popcnt = 0x69,
         AddInt32 = 0x6A,
-        i32_sub = 0x6B,
-        i32_mul = 0x6C,
+        SubtractInt32 = 0x6B,
+        MultiplyInt32 = 0x6C,
         i32_div_s = 0x6D,
         i32_div_u = 0x6E,
         i32_rem_s = 0x6F,
         i32_rem_u = 0x70,
         AndInt32 = 0x71,
-        i32_or = 0x72,
+        OrInt32 = 0x72,
         i32_xor = 0x73,
-        i32_shl = 0x74,
+        ShiftLeftInt32 = 0x74,
         i32_shr_s = 0x75,
-        i32_shr_u = 0x76,
+        ShiftRightUInt32 = 0x76,
         i32_rotl = 0x77,
         i32_rotr = 0x78,
         i64_clz = 0x79,
@@ -160,7 +160,7 @@
         f64_min = 0xA4,
         f64_max = 0xA5,
         f64_copysign = 0xA6,
-        i32_wrap_i64 = 0xA7,
+        Int32WrapInt64 = 0xA7,
         i32_trunc_f32_s = 0xA8,
         i32_trunc_f32_u = 0xA9,
         i32_trunc_f64_s = 0xAA,

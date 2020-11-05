@@ -6,19 +6,19 @@ using Wazzy.Types;
 
 namespace Wazzy.Bytecode.Instructions.Control
 {
-    public class IfIns : WASMInstruction
+    public class BlockIns : WASMInstruction
     {
         public int BlockId { get; set; }
         public Type BlockType { get; private set; }
         public List<WASMInstruction> Expression { get; }
 
-        public IfIns()
-            : base(OPCode.If)
+        public BlockIns()
+            : base(OPCode.Block)
         {
             Expression = new List<WASMInstruction>();
         }
-        public IfIns(WASMReader input)
-            : base(OPCode.If)
+        public BlockIns(WASMReader input)
+            : base(OPCode.Block)
         {
             BlockId = input.Read7BitEncodedInt();
             if (WASMType.IsSupportedType(BlockId))

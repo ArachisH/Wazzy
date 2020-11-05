@@ -8,11 +8,14 @@ namespace Wazzy.Bytecode.Instructions.Variable
     {
         public int Id { get; set; }
 
-        public GetGlobalIns(WASMReader input)
+        public GetGlobalIns(int id = 0)
             : base(OPCode.GetGlobal)
         {
-            Id = input.Read7BitEncodedInt();
+            Id = id;
         }
+        public GetGlobalIns(WASMReader input)
+            : this(input.Read7BitEncodedInt())
+        { }
 
         public override void Execute(Stack<object> stack, WASMModule context)
         {

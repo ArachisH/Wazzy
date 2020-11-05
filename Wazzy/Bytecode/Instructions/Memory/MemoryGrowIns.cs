@@ -2,15 +2,18 @@
 
 namespace Wazzy.Bytecode.Instructions.Memory
 {
-    public class MemoryGrowIns : WASMInstruction
+    public class MemoryGrowIns : MemoryInstruction
     {
-        public byte Index { get; }
+        public byte Index { get; set; }
 
-        public MemoryGrowIns(WASMReader input)
-            : base(OPCode.MemoryGrow)
+        public MemoryGrowIns(byte index = 0)
+            : base(OPCode.MemoryGrow, false)
         {
-            Index = input.ReadByte();
+            Index = index;
         }
+        public MemoryGrowIns(WASMReader input)
+            : this(input.ReadByte())
+        { }
 
         protected override void WriteBodyTo(WASMWriter output)
         {
