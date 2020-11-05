@@ -15,7 +15,7 @@ namespace Wazzy
         private bool _disposed;
         private readonly SortedDictionary<WASMSectionId, WASMSection> _sections;
 
-        internal WASMReader Input { get; }
+        protected internal WASMReader Input { get; }
 
         public WASMSection this[WASMSectionId id] => _sections[id];
 
