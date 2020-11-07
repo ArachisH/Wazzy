@@ -26,7 +26,7 @@ namespace Wazzy.Bytecode.Instructions.Control
                 BlockType = WASMType.GetType((byte)BlockId);
             }
             else if (BlockId == 0x40) BlockType = typeof(void);
-            else System.Diagnostics.Debugger.Break();
+            else {  /* TODO: TypeIndex */ }
 
             Expression = input.ReadExpression();
         }
