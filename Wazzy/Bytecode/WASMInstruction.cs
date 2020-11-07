@@ -68,6 +68,13 @@ namespace Wazzy.Bytecode
             OPCode.ShiftRightUInt32 => new ShiftRightUInt32Ins(),
             OPCode.Int32WrapInt64 => new Int32WrapInt64Ins(),
             OPCode.SubtractInt32 => new SubtractInt32Ins(),
+            OPCode.ExtendInt32_8S => new ExtendInt328SIns(),
+            OPCode.MultiplyFloat32 => new MultiplyFloat32Ins(),
+            OPCode.AddFloat32 => new AddFloat32Ins(),
+            OPCode.DivideUInt64 => new DivideUInt64Ins(),
+            OPCode.LessThanOrZeroSInt32 => new LessThanOrZeroSInt32Ins(),
+            OPCode.SubtractFloat32 => new SubtractFloat32Ins(),
+            OPCode.XorInt32 => new XorInt32Ins(),
 
             // Variable
             OPCode.GetLocal => new GetLocalIns(input),
@@ -84,7 +91,9 @@ namespace Wazzy.Bytecode
             OPCode.StoreInt32 => new StoreInt32Ins(input),
             OPCode.StoreInt32_8 => new StoreInt328Ins(input),
             OPCode.StoreInt64 => new StoreInt64Ins(input),
+            OPCode.StoreFloat32 => new StoreFloat32Ins(input),
             OPCode.MemoryGrow => new MemoryGrowIns(input),
+            OPCode.MemorySize => new MemorySizeIns(input),
 
             _ => throw new NotImplementedException()
         };
