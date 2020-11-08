@@ -7,72 +7,72 @@
         // Control Instructions [blocktype ::= valtype:byte | typeindex:s33]
         Unreachable = 0x00,
         Nop = 0x01,
-        Block = 0x02,               // <= {blocktype, (instr)*, 0x0B}
-        Loop = 0x03,                // <= {blocktype, (instr)*, 0x0B}
-        If = 0x04,                  // <= {blocktype, (instr)*, 0x05 ? <Else> : 0x0B}
-        Else = 0x05,                // <= {(instr)*, 0x0B}
+        Block = 0x02,                   // <= {blocktype, (instr)*, 0x0B}
+        Loop = 0x03,                    // <= {blocktype, (instr)*, 0x0B}
+        If = 0x04,                      // <= {blocktype, (instr)*, 0x05 ? <Else> : 0x0B}
+        Else = 0x05,                    // <= {(instr)*, 0x0B}
         Branch = 0x0C,                  // <= {labelidx u32}
-        BranchIf = 0x0D,               // <= {labelidx u32}
-        Br_Table = 0x0E,            // <= {vec(labelidx u32), labelidx u32}
+        BranchIf = 0x0D,                // <= {labelidx u32}
+        Br_Table = 0x0E,                // <= {vec(labelidx u32), labelidx u32}
         Return = 0x0F,
-        Call = 0x10,                // <= {funcidx u32}
-        CallIndirect = 0x11,       // <= {typeidx u32, 0x00}
+        Call = 0x10,                    // <= {funcidx u32}
+        CallIndirect = 0x11,            // <= {typeidx u32, 0x00}
 
         // Parametric Instructions
         Drop = 0x1A,
         Select = 0x1B,
 
         // Variable Instructions
-        GetLocal = 0x20,            // <= {localidx u32}
-        SetLocal = 0x21,            // <= {localidx u32}
-        TeeLocal = 0x22,            // <= {localidx u32}
-        GetGlobal = 0x23,           // <= {globalidx u32}
-        SetGlobal = 0x24,           // <= {globalidx u32}
+        GetLocal = 0x20,                // <= {localidx u32}
+        SetLocal = 0x21,                // <= {localidx u32}
+        TeeLocal = 0x22,                // <= {localidx u32}
+        GetGlobal = 0x23,               // <= {globalidx u32}
+        SetGlobal = 0x24,               // <= {globalidx u32}
 
         // Memory Instructions
-        LoadInt32 = 0x28,           // <= {align u32, offset u32}
-        LoadInt64 = 0x29,           // <= {align u32, offset u32}
-        LoadFloat32 = 0x2A,         // <= {align u32, offset u32}
-        LoadFloat64 = 0x2B,         // <= {align u32, offset u32}
-        LoadInt32_8S = 0x2C,        // <= {align u32, offset u32}
-        LoadInt32_8U = 0x2D,        // <= {align u32, offset u32}
-        LoadInt32_16S = 0x2E,       // <= {align u32, offset u32}
-        LoadInt32_16U = 0x2F,       // <= {align u32, offset u32}
-        LoadInt64_8S = 0x30,        // <= {align u32, offset u32}
-        LoadInt64_8U = 0x31,        // <= {align u32, offset u32}
-        LoadInt64_16S = 0x32,       // <= {align u32, offset u32}
-        LoadInt64_16U = 0x33,       // <= {align u32, offset u32}
-        LoadInt64_32S = 0x34,       // <= {align u32, offset u32}
-        LoadInt64_32U = 0x35,       // <= {align u32, offset u32}
-        StoreInt32 = 0x36,          // <= {align u32, offset u32}
-        StoreInt64 = 0x37,          // <= {align u32, offset u32}
-        StoreFloat32 = 0x38,        // <= {align u32, offset u32}
-        StoreFloat64 = 0x39,        // <= {align u32, offset u32}
-        StoreInt32_8 = 0x3A,        // <= {align u32, offset u32}
-        StoreInt32_16 = 0x3B,       // <= {align u32, offset u32}
-        StoreInt64_8 = 0x3C,        // <= {align u32, offset u32}
-        StoreInt64_16 = 0x3D,       // <= {align u32, offset u32}
-        StoreInt64_32 = 0x3E,       // <= {align u32, offset u32}
-        MemorySize = 0x3F,          // <= 0x00
-        MemoryGrow = 0x40,          // <= 0x00
+        LoadI32 = 0x28,                 // <= {align u32, offset u32}
+        LoadI64 = 0x29,                 // <= {align u32, offset u32}
+        LoadF32 = 0x2A,                 // <= {align u32, offset u32}
+        LoadF64 = 0x2B,                 // <= {align u32, offset u32}
+        LoadI32_8S = 0x2C,              // <= {align u32, offset u32}
+        Load332_8U = 0x2D,              // <= {align u32, offset u32}
+        LoadI32_16S = 0x2E,             // <= {align u32, offset u32}
+        LoadI32_16U = 0x2F,             // <= {align u32, offset u32}
+        LoadI64_8S = 0x30,              // <= {align u32, offset u32}
+        LoadI64_8U = 0x31,              // <= {align u32, offset u32}
+        LoadI64_16S = 0x32,             // <= {align u32, offset u32}
+        LoadI64_16U = 0x33,             // <= {align u32, offset u32}
+        LoadI64_32S = 0x34,             // <= {align u32, offset u32}
+        LoadI64_32U = 0x35,             // <= {align u32, offset u32}
+        StoreI32 = 0x36,                // <= {align u32, offset u32}
+        StoreI64 = 0x37,                // <= {align u32, offset u32}
+        StoreF32 = 0x38,                // <= {align u32, offset u32}
+        StoreF64 = 0x39,                // <= {align u32, offset u32}
+        StoreI32_8 = 0x3A,              // <= {align u32, offset u32}
+        StoreI32_16 = 0x3B,             // <= {align u32, offset u32}
+        StoreI64_8 = 0x3C,              // <= {align u32, offset u32}
+        StoreI64_16 = 0x3D,             // <= {align u32, offset u32}
+        StoreI64_32 = 0x3E,             // <= {align u32, offset u32}
+        MemorySize = 0x3F,              // <= 0x00
+        MemoryGrow = 0x40,              // <= 0x00
 
         // Numeric Instructions
-        ConstantInt32 = 0x41,       // <= {n u32}
-        ConstantInt64 = 0x42,       // <= {n u32}
-        ConstantFloat32 = 0x43,     // <= {z float}
-        ConstantFloat64 = 0x44,     // <= {z float}
+        ConstantI32 = 0x41,             // <= {n u32}
+        ConstantI64 = 0x42,             // <= {n u32}
+        ConstantF32 = 0x43,             // <= {z float}
+        ConstantF64 = 0x44,             // <= {z float}
 
-        EqualsZeroInt32 = 0x45,
-        EqualsInt32 = 0x46,
-        NotEqualInt32 = 0x47,
+        EqualsZeroI32 = 0x45,
+        EqualsI32 = 0x46,
+        NotEqualI32 = 0x47,
         i32_lt_s = 0x48,
-        LessThanUInt32 = 0x49,
-        GreaterThanSInt32 = 0x4A,
-        GreaterThanUInt32 = 0x4B,
-        LessThanOrZeroSInt32 = 0x4C,
-        LessThanOrEqualUInt32 = 0x4D,
+        LessThanI32_U = 0x49,
+        GreaterThanI32_S = 0x4A,
+        GreaterThanI32_U = 0x4B,
+        LessThanOrZeroI32_S = 0x4C,
+        LessThanOrEqualI32_U = 0x4D,
         i32_ge_s = 0x4E,
-        GreaterThanOrEqualUInt32 = 0x4F,
+        GreaterThanOrEqualI32_U = 0x4F,
         i64_eqz = 0x50,
         i64_eq = 0x51,
         i64_ne = 0x52,
@@ -85,9 +85,9 @@
         i64_ge_s = 0x59,
         i64_ge_u = 0x5A,
         f32_eq = 0x5B,
-        NotEqualFloat32 = 0x5C,
-        LessThanFloat32 = 0x5D,
-        GreaterThanFloat32 = 0x5E,
+        NotEqualF32 = 0x5C,
+        LessThanF32 = 0x5D,
+        GreaterThanF32 = 0x5E,
         f32_le = 0x5F,
         f32_ge = 0x60,
         f64_eq = 0x61,
@@ -99,50 +99,50 @@
         i32_clz = 0x67,
         i32_ctz = 0x68,
         i32_popcnt = 0x69,
-        AddInt32 = 0x6A,
-        SubtractInt32 = 0x6B,
-        MultiplyInt32 = 0x6C,
-        DivideSInt32 = 0x6D,
+        AddI32 = 0x6A,
+        SubtractI32 = 0x6B,
+        MultiplyI32 = 0x6C,
+        DivideSignedI32 = 0x6D,
         i32_div_u = 0x6E,
         i32_rem_s = 0x6F,
-        RemainderUInt32 = 0x70,
-        AndInt32 = 0x71,
-        OrInt32 = 0x72,
-        XorInt32 = 0x73,
-        ShiftLeftInt32 = 0x74,
-        ShiftRightSInt32 = 0x75,
-        ShiftRightUInt32 = 0x76,
+        RemainderI32_U = 0x70,
+        AndI32 = 0x71,
+        OrI32 = 0x72,
+        XorI32 = 0x73,
+        ShiftLeftI32 = 0x74,
+        ShiftRightI32_S = 0x75,
+        ShiftRightI32_U = 0x76,
         i32_rotl = 0x77,
         i32_rotr = 0x78,
         i64_clz = 0x79,
         i64_ctz = 0x7A,
         i64_popcnt = 0x7B,
-        AddInt64 = 0x7C,
-        SubtractInt64 = 0x7D,
+        AddI64 = 0x7C,
+        SubtractI64 = 0x7D,
         i64_mul = 0x7E,
         i64_div_s = 0x7F,
-        DivideUInt64 = 0x80,
+        DivideUnsignedI64 = 0x80,
         i64_rem_s = 0x81,
         i64_rem_u = 0x82,
-        AndInt64 = 0x83,
-        OrInt64 = 0x84,
+        AndI64 = 0x83,
+        OrI64 = 0x84,
         i64_xor = 0x85,
-        ShiftLeftInt64 = 0x86,
+        ShiftLeftI64 = 0x86,
         i64_shr_s = 0x87,
-        ShiftRightUInt64 = 0x88,
-        RotateLeftInt64 = 0x89,
+        ShiftRightI64_U = 0x88,
+        RotateLeftI64 = 0x89,
         i64_rotr = 0x8A,
-        AbsoluteFloat32 = 0x8B,
+        AbsoluteF32 = 0x8B,
         f32_neg = 0x8C,
         f32_ceil = 0x8D,
         f32_floor = 0x8E,
         f32_trunc = 0x8F,
         f32_nearest = 0x90,
-        SquareRootFloat32 = 0x91,
-        AddFloat32 = 0x92,
-        SubtractFloat32 = 0x93,
-        MultiplyFloat32 = 0x94,
-        DivideFloat32 = 0x95,
+        SquareRootF32 = 0x91,
+        AddF32 = 0x92,
+        SubtractF32 = 0x93,
+        MultiplyF32 = 0x94,
+        DivideF32 = 0x95,
         f32_min = 0x96,
         f32_max = 0x97,
         f32_copysign = 0x98,
@@ -160,18 +160,18 @@
         f64_min = 0xA4,
         f64_max = 0xA5,
         f64_copysign = 0xA6,
-        Int32WrapInt64 = 0xA7,
+        WrapI64IntoI32 = 0xA7,
         i32_trunc_f32_s = 0xA8,
         i32_trunc_f32_u = 0xA9,
         i32_trunc_f64_s = 0xAA,
         i32_trunc_f64_u = 0xAB,
-        Int64ExtendSInt32 = 0xAC,
-        Int64ExtendUInt32 = 0xAD,
+        ExtendSignedI32IntoI64 = 0xAC,
+        ExtendUnsignedI32IntoI64 = 0xAD,
         i64_trunc_f32_s = 0xAE,
         i64_trunc_f32_u = 0xAF,
         i64_trunc_f64_s = 0xB0,
         i64_trunc_f64_u = 0xB1,
-        Float32ConvertSInt32 = 0xB2,
+        ConvertSignedI32IntoF32 = 0xB2,
         f32_convert_i32_u = 0xB3,
         f32_convert_i64_s = 0xB4,
         f32_convert_i64_u = 0xB5,
@@ -181,11 +181,11 @@
         f64_convert_i64_s = 0xB9,
         f64_convert_i64_u = 0xBA,
         f64_promote_f32 = 0xBB,
-        Int32ReinterpretFloat32 = 0xBC,
+        ReinterpretF32IntoI32 = 0xBC,
         i64_reinterpret_f64 = 0xBD,
-        Float32ReinterpretInt32 = 0xBE,
-        f64_reinterpret_i64 = 0xBF,
-        ExtendInt32_8S = 0xC0,
+        ReinterpretI32IntoF32 = 0xBE,
+        ReinterpretI64IntoF32 = 0xBF,
+        ExtendI32_8S = 0xC0,
         i32_extend16_s = 0xC1,
         i64_extend8_s = 0xC2,
         i64_extend16_s = 0xC3,

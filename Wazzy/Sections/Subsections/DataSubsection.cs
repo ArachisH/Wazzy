@@ -20,7 +20,7 @@ namespace Wazzy.Sections.Subsections
             Package = package;
             Expression = new List<WASMInstruction>()
             {
-                new ConstantInt32Ins(offset),
+                new ConstantI32Ins(offset),
                 new EndIns()
             };
         }
