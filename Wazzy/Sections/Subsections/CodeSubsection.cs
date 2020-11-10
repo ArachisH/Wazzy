@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿//#define Peanut_Debugging
+
+using System.Collections.Generic;
 
 using Wazzy.IO;
 using Wazzy.Types;
+using Wazzy.Bytecode;
 
 namespace Wazzy.Sections.Subsections
 {
@@ -9,17 +12,37 @@ namespace Wazzy.Sections.Subsections
     {
         public byte[] Body { get; set; }
         public List<Local> Locals { get; }
+        public List<WASMInstruction> Expression { get; }
 
         public CodeSubsection(WASMModule module)
         {
-            int size = module.Input.Read7BitEncodedInt();
-            int start = module.Input.Position;
+            int sizeOfSubsection = module.Input.Read7BitEncodedInt();
+
+        DataStart: // Are you judging me right now? 
+            int startOfSubsection = module.Input.Position;
             Locals = new List<Local>(module.Input.Read7BitEncodedInt());
             for (int i = 0; i < Locals.Capacity; i++)
             {
                 Locals.Add(new Local(module));
             }
-            Body = module.Input.ReadBytes(size - (module.Input.Position - start));
+
+            int startOfBytecode = module.Input.Position;
+            int sizeOfBytecode = sizeOfSubsection - (startOfBytecode - startOfSubsection);
+
+#if Peanut_Debugging
+            Expression = module.Input.ReadExpression();
+#else
+            Body = module.Input.ReadBytes(sizeOfBytecode);
+#endif
+#if Peanut_Debugging
+            int bytesRead = module.Input.Position - startOfBytecode;
+            if (bytesRead != sizeOfBytecode)
+            {
+                System.Diagnostics.Debugger.Break();
+                module.Input.Position = startOfSubsection;
+                goto DataStart; // Abort Abort
+            }
+#endif
         }
 
         public override void WriteTo(WASMWriter output)
