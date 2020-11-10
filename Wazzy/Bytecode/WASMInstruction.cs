@@ -41,6 +41,7 @@ namespace Wazzy.Bytecode
             OPCode.If => new IfIns(input),
             OPCode.Branch => new BranchIns(input),
             OPCode.BranchIf => new BranchIfIns(input),
+            OPCode.BranchTable => new BranchTableIns(input),
             OPCode.Else => new ElseIns(),
             OPCode.Return => new ReturnIns(),
             OPCode.Call => new CallIns(input),
@@ -49,6 +50,7 @@ namespace Wazzy.Bytecode
 
             // Parametric
             OPCode.Drop => new DropIns(),
+            OPCode.Select => new SelectIns(),
 
             // Numeric
             OPCode.ConstantI32 => new ConstantI32Ins(input),
@@ -100,6 +102,14 @@ namespace Wazzy.Bytecode
             OPCode.RotateLeftI64 => new RotateLeftI64Ins(),
             OPCode.SubtractI64 => new SubtractI64Ins(),
             OPCode.ReinterpretI64IntoF32 => new ReinterpretI64IntoF32Ins(),
+            OPCode.CeilingF32 => new CeilingF32Ins(),
+            OPCode.DivideI64_S => new DivideI64_SIns(),
+            OPCode.DivideI32_U => new DivideI32_UIns(),
+            OPCode.LessThanI32_S => new LessThanI32_SIns(),
+            OPCode.GreaterThanOrEqualI32_S => new GreaterThanOrEqualI32_SIns(),
+            OPCode.EqualsF32 => new EqualsF32Ins(),
+            OPCode.GreaterThanOrEqualF32 => new GreaterThanOrEqualF32Ins(),
+            OPCode.LessThanF64 => new LessThanF64Ins(),
 
             // Variable
             OPCode.GetLocal => new GetLocalIns(input),
@@ -112,6 +122,7 @@ namespace Wazzy.Bytecode
             OPCode.LoadI32 => new LoadI32Ins(input),
             OPCode.LoadI64 => new LoadI64Ins(input),
             OPCode.LoadI64_8S => new LoadI64_8SIns(input),
+            OPCode.LoadI64_32U => new LoadI64_32UIns(input),
             OPCode.LoadF32 => new LoadF32Ins(input),
             OPCode.LoadI32_8S => new LoadI32_8SIns(input),
             OPCode.StoreI32 => new StoreI32Ins(input),
@@ -121,7 +132,7 @@ namespace Wazzy.Bytecode
             OPCode.MemoryGrow => new MemoryGrowIns(input),
             OPCode.MemorySize => new MemorySizeIns(input),
 
-            _ => throw new NotImplementedException()
+            _ => throw new NotImplementedException($"This instruction has not yet been implemented or does not exist in the specification. {op}(0x{(byte)op:X2})")
         };
         public static WASMInstruction Create(WASMReader input) => Create((OPCode)input.ReadByte(), input);
     }
