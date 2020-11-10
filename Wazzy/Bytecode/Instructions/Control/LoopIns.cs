@@ -23,11 +23,9 @@ namespace Wazzy.Bytecode.Instructions.Control
             BlockId = input.Read7BitEncodedInt();
             if (WASMType.IsSupportedType(BlockId))
             {
-                BlockType = WASMType.GetType((byte)BlockId);
+                BlockType = WASMType.GetType(BlockId);
             }
             else if (BlockId == 0x40) BlockType = typeof(void);
-            else System.Diagnostics.Debugger.Break();
-
             Expression = input.ReadExpression();
         }
 
