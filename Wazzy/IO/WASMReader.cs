@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 
@@ -27,13 +28,6 @@ namespace Wazzy.IO
             : base(input, Encoding.UTF8, leaveOpen)
         { }
 
-        public List<WASMInstruction> ReadExpression()
-        {
-            var expression = new List<WASMInstruction>(3);
-            do expression.Add(WASMInstruction.Create(this));
-            while (expression[^1].OP != OPCode.End);
-            return expression;
-        }
         public Type ReadValueType() => WASMType.GetType(ReadByte());
         new public int Read7BitEncodedInt() => base.Read7BitEncodedInt();
         public string Read7BitEncodedString() => ReadString(Read7BitEncodedInt());
@@ -59,6 +53,31 @@ namespace Wazzy.IO
                 }
             }
             return data;
+        }
+
+        public List<WASMInstruction> ReadExpression() => ReadExpression(-1, null);
+        public List<WASMInstruction> ReadExpression(int byteReadLimit) => ReadExpression(byteReadLimit, null);
+        public List<WASMInstruction> ReadExpression(params OPCode[] additionalExitOperationCodes) => ReadExpression(-1, additionalExitOperationCodes);
+        public List<WASMInstruction> ReadExpression(int byteReadLimit, params OPCode[] additionalExitOperationCodes)
+        {
+            int startExpression = Position;
+            var expression = new List<WASMInstruction>(3);
+            additionalExitOperationCodes ??= new OPCode[0];
+            while (Position < Length)
+            {
+                var op = (OPCode)ReadByte();
+                var instruction = WASMInstruction.Create(op, this);
+
+                expression.Add(instruction);
+                if (byteReadLimit == -1) // Nested expression, return to upper level if marked as exit operation code.
+                {
+                    //if (op == OPCode.Block) break;
+                    if (op == OPCode.End || additionalExitOperationCodes.Contains(op)) break; // Not sure I'm liking this .Contains call...
+                }
+                else if (Position - startExpression >= byteReadLimit) break; // Maximum bytes have been read from the highest scope/expression, exit regardless of operation exit code?
+
+            }
+            return expression;
         }
 
         public static int Get7BitEncodedIntSize(int value)
