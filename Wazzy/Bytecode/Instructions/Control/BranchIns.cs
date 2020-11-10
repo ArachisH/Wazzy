@@ -6,14 +6,14 @@ namespace Wazzy.Bytecode.Instructions.Control
     {
         public int LabelIndex { get; set; }
 
-        public BranchIns(int labelIndex)
+        public BranchIns(WASMReader input)
+            : this(input.Read7BitEncodedInt())
+        { }
+        public BranchIns(int labelIndex = 0)
             : base(OPCode.Branch)
         {
             LabelIndex = labelIndex;
         }
-        public BranchIns(WASMReader input)
-            : this(input.Read7BitEncodedInt())
-        { }
 
         protected override void WriteBodyTo(WASMWriter output)
         {
