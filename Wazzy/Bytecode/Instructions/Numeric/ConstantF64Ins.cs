@@ -6,16 +6,16 @@ namespace Wazzy.Bytecode.Instructions.Numeric
 {
     public class ConstantF64Ins : WASMInstruction
     {
-        public int Constant { get; set; }
+        public double Constant { get; set; }
 
-        public ConstantF64Ins(int constant = 0)
+        public ConstantF64Ins(WASMReader input)
+            : this(input.ReadDouble())
+        { }
+        public ConstantF64Ins(double constant = 0)
             : base(OPCode.ConstantF64)
         {
             Constant = constant;
         }
-        public ConstantF64Ins(WASMReader input)
-            : this(input.Read7BitEncodedInt())
-        { }
 
         public override void Execute(Stack<object> stack, WASMModule context)
         {
@@ -24,7 +24,7 @@ namespace Wazzy.Bytecode.Instructions.Numeric
 
         protected override void WriteBodyTo(WASMWriter output)
         {
-            output.Write7BitEncodedInt(Constant);
+            output.Write(Constant);
         }
     }
 }
