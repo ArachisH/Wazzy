@@ -28,8 +28,21 @@ namespace Wazzy.IO
             : base(input, Encoding.UTF8, leaveOpen)
         { }
 
+        public new int Read7BitEncodedInt()
+        {
+            uint result = 0;
+            const int MaxRead = 5;
+            for (int shift = 0; shift < MaxRead * 7; shift += 7)
+            {
+                byte read = ReadByte();
+                result |= (read & 0x7Fu) << shift;
+
+                if (read <= 0x7Fu)
+                    return (int)result;
+            }
+            throw new OverflowException();
+        }
         public Type ReadValueType() => WASMType.GetType(ReadByte());
-        new public int Read7BitEncodedInt() => base.Read7BitEncodedInt();
         public string Read7BitEncodedString() => ReadString(Read7BitEncodedInt());
         public string ReadString(int length) => Encoding.UTF8.GetString(ReadBytes(length));
         public byte[] ReadBytesUntil(int bufferSize, int bufferIncrementSize, byte endMark = 0x00)
@@ -62,7 +75,7 @@ namespace Wazzy.IO
         {
             int startExpression = Position;
             var expression = new List<WASMInstruction>(3);
-            additionalExitOperationCodes ??= new OPCode[0];
+            additionalExitOperationCodes ??= Array.Empty<OPCode>();
             while (Position < Length)
             {
                 var op = (OPCode)ReadByte();

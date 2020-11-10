@@ -38,7 +38,7 @@ namespace Wazzy.IO
             }
         }
 
-        new public void Write7BitEncodedInt(int value)
+        public new void Write7BitEncodedInt(int value)
         {
             value |= 0;
             while (true)
