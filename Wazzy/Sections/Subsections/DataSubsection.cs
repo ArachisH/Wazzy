@@ -24,23 +24,38 @@ namespace Wazzy.Sections.Subsections
                 new EndIns()
             };
         }
-        public DataSubsection(WASMModule module)
+        public DataSubsection(WASMModule module, ref WASMReader input)
         {
-            MemoryIndex = module.Input.Read7BitEncodedInt();
-            Expression = module.Input.ReadExpression();
+            MemoryIndex = input.ReadIntLEB128();
+            Expression = input.ReadExpression();
             Offset = (int)WASMMachine.Execute(Expression, module).Pop();
-            Package = module.Input.ReadBytes(module.Input.Read7BitEncodedInt());
+            
+            Package = new byte[input.ReadIntULEB128()];
+            input.ReadBytes(Package);
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(MemoryIndex);
+            output.WriteLEB128(MemoryIndex);
             foreach (WASMInstruction instruction in Expression)
             {
-                instruction.WriteTo(output);
+                instruction.WriteTo(ref output);
             }
-            output.Write7BitEncodedInt(Package.Length);
+            output.WriteULEB128((uint)Package.Length);
             output.Write(Package);
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += WASMReader.GetLEB128Size(MemoryIndex);
+            foreach (WASMInstruction instruction in Expression)
+            {
+                size += instruction.GetSize();
+            }
+            size += WASMReader.GetULEB128Size((uint)Package.Length);
+            size += Package.Length;
+            return size;
         }
     }
 }

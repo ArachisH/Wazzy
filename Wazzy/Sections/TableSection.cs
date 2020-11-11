@@ -5,22 +5,33 @@ namespace Wazzy.Sections
 {
     public class TableSection : WASMSectionEnumerable<TableType>
     {
-        public TableSection(WASMModule module)
-            : base(module, WASMSectionId.TableSection)
+        public TableSection(ref WASMReader input)
+            : base(WASMSectionId.TableSection)
         {
-            Subsections.Capacity = module.Input.Read7BitEncodedInt();
+            Subsections.Capacity = input.ReadIntLEB128();
             for (int i = 0; i < Subsections.Capacity; i++)
             {
-                Add(new TableType(module));
+                Add(new TableType(ref input));
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
+        protected override int GetBodySize()
         {
-            output.Write7BitEncodedInt(Subsections.Count);
+            int size = 0;
+            size += WASMReader.GetLEB128Size(Subsections.Count);
             foreach (TableType table in Subsections)
             {
-                table.WriteTo(output);
+                size += table.GetSize();
+            }
+            return size;
+        }
+
+        protected override void WriteBodyTo(ref WASMWriter output)
+        {
+            output.WriteLEB128(Subsections.Count);
+            foreach (TableType table in Subsections)
+            {
+                table.WriteTo(ref output);
             }
         }
     }

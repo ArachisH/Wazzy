@@ -22,10 +22,10 @@ namespace Wazzy.Bytecode.Instructions.Control
             Expression = new List<WASMInstruction>();
             ElseExpression = new List<WASMInstruction>();
         }
-        public IfIns(WASMReader input)
+        public IfIns(ref WASMReader input)
             : base(OPCode.If)
         {
-            BlockId = input.Read7BitEncodedInt();
+            BlockId = input.ReadIntLEB128();
             if (WASMType.IsSupportedType(BlockId))
             {
                 BlockType = WASMType.GetType((byte)BlockId);
@@ -40,20 +40,39 @@ namespace Wazzy.Bytecode.Instructions.Control
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(BlockId);
+            output.WriteLEB128(BlockId);
             foreach (WASMInstruction instruction in Expression)
             {
-                instruction.WriteTo(output);
+                instruction.WriteTo(ref output);
             }
             if (ElseExpression.Count == 0) return;
 
             output.Write((byte)OPCode.Else);
             foreach (WASMInstruction instruction in ElseExpression)
             {
-                instruction.WriteTo(output);
+                instruction.WriteTo(ref output);
             }
+        }
+
+        protected override int GetBodySize()
+        {
+            int size = 0;
+            size += WASMReader.GetLEB128Size(BlockId);
+            foreach (WASMInstruction instruction in Expression)
+            {
+                size += instruction.GetSize();
+            }
+
+            if (HasElseExpression)
+            {
+                foreach (WASMInstruction instruction in ElseExpression)
+                {
+                    size += instruction.GetSize();
+                }
+            }
+            return size;
         }
     }
 }

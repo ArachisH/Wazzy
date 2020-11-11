@@ -14,25 +14,37 @@ namespace Wazzy.Bytecode.Instructions.Control
         {
             LabelIndices = new List<int>();
         }
-        public BranchTableIns(WASMReader input)
+        public BranchTableIns(ref WASMReader input)
             : this()
         {
-            LabelIndices.Capacity = input.Read7BitEncodedInt();
+            LabelIndices.Capacity = input.ReadIntLEB128();
             for (int i = 0; i < LabelIndices.Capacity; i++)
             {
-                LabelIndices.Add(input.Read7BitEncodedInt());
+                LabelIndices.Add(input.ReadIntLEB128());
             }
-            LabelIndex = input.Read7BitEncodedInt();
+            LabelIndex = input.ReadIntLEB128();
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(LabelIndices.Count);
+            output.WriteLEB128(LabelIndices.Count);
             foreach (int labelIndex in LabelIndices)
             {
-                output.Write7BitEncodedInt(labelIndex);
+                output.WriteLEB128(labelIndex);
             }
-            output.Write7BitEncodedInt(LabelIndex);
+            output.WriteLEB128(LabelIndex);
+        }
+
+        protected override int GetBodySize()
+        {
+            int size = 0;
+            size += WASMReader.GetLEB128Size(LabelIndices.Count);
+            foreach (int labelIndex in LabelIndices)
+            {
+                size += WASMReader.GetLEB128Size(labelIndex);
+            }
+            size += WASMReader.GetLEB128Size(LabelIndex);
+            return size;
         }
     }
 }

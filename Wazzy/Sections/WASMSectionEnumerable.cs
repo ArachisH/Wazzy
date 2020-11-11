@@ -7,8 +7,8 @@ namespace Wazzy.Sections
     {
         protected List<T> Subsections { get; }
 
-        protected WASMSectionEnumerable(WASMModule module, WASMSectionId id)
-            : base(module, id)
+        protected WASMSectionEnumerable(WASMSectionId id)
+            : base(id)
         {
             Subsections = new List<T>();
         }

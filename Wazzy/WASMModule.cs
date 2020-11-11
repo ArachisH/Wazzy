@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -10,13 +10,14 @@ using Wazzy.Sections;
 
 namespace Wazzy
 {
-    public class WASMModule : IEnumerable<WASMSection>, IDisposable
+    public class WASMModule : IEnumerable<WASMSection>
     {
-        private bool _disposed;
+        private const int HEADER_SIZE = 8;
+        private const uint MAGIC_HEADER = 0x6D736100;
+
+        private ReadOnlyMemory<byte> _data;
         private readonly SortedDictionary<WASMSectionId, WASMSection> _sections;
-
-        protected internal WASMReader Input { get; }
-
+        
         public WASMSection this[WASMSectionId id] => _sections[id];
 
         #region Section Properties
@@ -106,108 +107,98 @@ namespace Wazzy
         {
             _sections = new SortedDictionary<WASMSectionId, WASMSection>();
             CustomSections = new List<CustomSection>();
+
+            Version = 1;
         }
         public WASMModule(string path)
-            : this(File.OpenRead(path))
+            : this(File.ReadAllBytes(path))
         { }
-        public WASMModule(byte[] data)
-            : this(new MemoryStream(data))
-        { }
-        public WASMModule(Stream input)
-            : this(input, false)
-        { }
-        public WASMModule(Stream input, bool leaveOpen)
-            : this(new WASMReader(input, leaveOpen))
-        { }
-        public WASMModule(WASMReader input)
+        public WASMModule(ReadOnlyMemory<byte> data)
             : this()
         {
-            Input = input;
-            if (!Encoding.UTF8.GetString(input.ReadBytes(4))
-                .Equals("\0asm", StringComparison.OrdinalIgnoreCase))
+            _data = data;
+
+            var input = new WASMReader(data.Span);
+            if (input.ReadUInt32() != MAGIC_HEADER)
             {
                 throw new Exception(@"Invalid WASM file, does not begin with ""\0asm"".");
             }
-            Version = Input.ReadUInt32();
+            Version = input.ReadUInt32();
         }
 
         public bool ContainsSection(WASMSectionId id) => _sections.ContainsKey(id);
         public bool TryGetSection(WASMSectionId id, out WASMSection section) => _sections.TryGetValue(id, out section);
 
         public void Disassemble()
-        {
-            while (Input.BaseStream.CanRead && Input.BaseStream.Position != Input.BaseStream.Length)
+        {   
+            var input = new WASMReader(_data.Span[HEADER_SIZE..]);
+
+            while (input.IsDataAvailable)
             {
-                var id = (WASMSectionId)Input.ReadByte();
-                WASMSection section = ParseSection(id); // This will override any section that was set prior to calling Disassemble().
-                if (!Enum.IsDefined(typeof(WASMSectionId), id))
-                {
-                    throw new Exception($"Unable to determine section type. {id}(0x{id:X})");
-                }
-                else if (id == WASMSectionId.CustomSection)
+                var id = (WASMSectionId)input.ReadByte();
+                int length = (int)input.ReadIntULEB128();
+                WASMSection section = ParseSection(id, length, ref input); // This will override any section that was set prior to calling Disassemble().
+                
+                if (id == WASMSectionId.CustomSection)
                 {
                     CustomSections.Add((CustomSection)section);
                 }
             }
+
+            _data = null;
+            GC.Collect();
         }
-        public void Assemble(WASMWriter output)
+
+        public void Assemble(IBufferWriter<byte> output)
         {
-            output.Write(new byte[] { 0, (byte)'a', (byte)'s', (byte)'m' });
-            output.Write(Version);
+            var headerWriter = new WASMWriter(output.GetSpan(HEADER_SIZE));
+            headerWriter.Write(MAGIC_HEADER);
+            headerWriter.Write(Version);
+            output.Advance(HEADER_SIZE);
+
             foreach (WASMSection section in _sections.Values.Concat(CustomSections))
             {
                 section.WriteTo(output);
             }
-            output.Flush();
+        }
+        public void Assemble(WASMWriter output)
+        {
+            output.Write(MAGIC_HEADER);
+            output.Write(Version);
+            foreach (WASMSection section in _sections.Values.Concat(CustomSections))
+            {
+                section.WriteTo(ref output);
+            }
         }
 
         public byte[] ToArray()
         {
-            using var output = new MemoryStream();
-            CopyTo(output);
-
-            return output.ToArray();
-        }
-        public void CopyTo(Stream output)
-        {
-            using var wasmOutput = new WASMWriter(output);
-            Assemble(wasmOutput);
+            var arrayWriter = new ArrayBufferWriter<byte>(HEADER_SIZE);
+            Assemble(arrayWriter);
+            return arrayWriter.WrittenSpan.ToArray();
         }
 
-        protected virtual WASMSection ParseSection(WASMSectionId id) => id switch
+        protected virtual WASMSection ParseSection(WASMSectionId id, int length, ref WASMReader input) => id switch
         {
-            WASMSectionId.CustomSection => new CustomSection(this),
-            WASMSectionId.TypeSection => TypeSec = new TypeSection(this),
-            WASMSectionId.ImportSection => ImportSec = new ImportSection(this),
-            WASMSectionId.FunctionSection => FunctionSec = new FunctionSection(this),
-            WASMSectionId.TableSection => TableSec = new TableSection(this),
-            WASMSectionId.MemorySection => MemorySec = new MemorySection(this),
-            WASMSectionId.GlobalSection => GlobalSec = new GlobalSection(this),
-            WASMSectionId.ExportSection => ExportSec = new ExportSection(this),
-            WASMSectionId.StartSection => StartSec = new StartSection(this),
-            WASMSectionId.ElementSection => ElementSec = new ElementSection(this),
-            WASMSectionId.CodeSection => CodeSec = new CodeSection(this),
-            WASMSectionId.DataSection => DataSec = new DataSection(this),
-            _ => null
+            WASMSectionId.CustomSection => new CustomSection(length, ref input),
+
+            WASMSectionId.TypeSection => TypeSec = new TypeSection(ref input),
+            WASMSectionId.ImportSection => ImportSec = new ImportSection(ref input),
+            WASMSectionId.FunctionSection => FunctionSec = new FunctionSection(ref input),
+            WASMSectionId.TableSection => TableSec = new TableSection(ref input),
+            WASMSectionId.MemorySection => MemorySec = new MemorySection(ref input),
+            WASMSectionId.GlobalSection => GlobalSec = new GlobalSection(ref input),
+            WASMSectionId.ExportSection => ExportSec = new ExportSection(ref input),
+            WASMSectionId.StartSection => StartSec = new StartSection(ref input),
+            WASMSectionId.ElementSection => ElementSec = new ElementSection(this, ref input),
+            WASMSectionId.CodeSection => CodeSec = new CodeSection(ref input),
+            WASMSectionId.DataSection => DataSec = new DataSection(this, ref input),
+
+            _ => throw new Exception($"Unable to determine section type. {id}(0x{id:X})")
         };
 
         private void RecordSection<T>(T section, out T backingField) where T : WASMSection
             => _sections[section.Id] = backingField = section;
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-            if (disposing)
-            {
-                Input?.Dispose();
-            }
-            _disposed = true;
-        }
 
         #region IEnumerable<T> Implementation
         public IEnumerator<WASMSection> GetEnumerator()

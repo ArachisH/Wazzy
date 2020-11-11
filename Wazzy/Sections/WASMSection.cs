@@ -1,45 +1,33 @@
-﻿using System.IO;
-
-using Wazzy.IO;
+﻿using Wazzy.IO;
 
 namespace Wazzy.Sections
 {
     public abstract class WASMSection : WASMObject
     {
-        protected readonly WASMModule _module;
-
-        public int Size { get; }
-        public int Start { get; }
-
         public WASMSectionId Id { get; }
 
-        public WASMSection(WASMModule module, WASMSectionId id)
+        public WASMSection(WASMSectionId id)
         {
-            _module = module;
-
             Id = id;
-            Size = module.Input.Read7BitEncodedInt();
-            Start = module.Input.Position;
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
             output.Write((byte)Id);
-
-            byte[] bodyData;
-            using (var bodyMemory = new MemoryStream())
-            using (var bodyWriter = new WASMWriter(bodyMemory))
-            {
-                WriteBodyTo(bodyWriter, output.Position);
-
-                bodyWriter.Flush();
-                bodyMemory.Flush();
-                bodyData = bodyMemory.ToArray();
-            }
-
-            output.Write7BitEncodedInt(bodyData.Length);
-            output.Write(bodyData);
+            output.WriteULEB128((uint)GetBodySize());
+            WriteBodyTo(ref output);
         }
-        protected abstract void WriteBodyTo(WASMWriter output, int globalPosition);
+        public override int GetSize()
+        {
+            int sectionSize = GetBodySize();
+            int size = 0;
+            size += sizeof(byte);
+            size += WASMReader.GetULEB128Size((uint)sectionSize);
+            size += sectionSize;
+            return size;
+        }
+
+        protected abstract int GetBodySize();
+        protected abstract void WriteBodyTo(ref WASMWriter output);
     }
 }

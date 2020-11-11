@@ -7,16 +7,24 @@ namespace Wazzy.Types
         public byte ElementType { get; set; } 
         public Limits Limits { get; set; }
 
-        public TableType(WASMModule module)
+        public TableType(ref WASMReader input)
         {
-            ElementType = module.Input.ReadByte(); // WASM v1 only supports funcref(0x70), but will perhaps support more in the future.
-            Limits = new Limits(module);
+            ElementType = input.ReadByte(); // WASM v1 only supports funcref(0x70), but will perhaps support more in the future.
+            Limits = new Limits(ref input);
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
             output.Write(ElementType);
-            Limits.WriteTo(output);
+            Limits.WriteTo(ref output);
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += sizeof(byte);
+            size += Limits.GetSize();
+            return size;
         }
     }
 }

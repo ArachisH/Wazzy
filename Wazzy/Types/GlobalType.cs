@@ -9,16 +9,24 @@ namespace Wazzy.Types
         public Type ValueType { get; set; }
         public bool IsReadOnly { get; set; }
 
-        public GlobalType(WASMModule module)
+        public GlobalType(ref WASMReader input)
         {
-            ValueType = module.Input.ReadValueType();
-            IsReadOnly = !module.Input.ReadBoolean();
+            ValueType = input.ReadValueType();
+            IsReadOnly = !input.ReadBoolean();
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
             output.Write(ValueType);
             output.Write(!IsReadOnly); // False|0x00 = const
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += sizeof(byte);
+            size += sizeof(byte);
+            return size;
         }
     }
 }

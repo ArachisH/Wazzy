@@ -11,13 +11,15 @@ namespace Wazzy.Bytecode.Instructions.Memory
         {
             Index = index;
         }
-        public MemoryGrowIns(WASMReader input)
+        public MemoryGrowIns(ref WASMReader input)
             : this(input.ReadByte())
         { }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
             output.Write(Index);
         }
+
+        protected override int GetBodySize() => sizeof(byte);
     }
 }

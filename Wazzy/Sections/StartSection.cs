@@ -6,15 +6,20 @@ namespace Wazzy.Sections
     {
         public int FunctionId { get; set; }
 
-        public StartSection(WASMModule module)
-            : base(module, WASMSectionId.StartSection)
+        public StartSection(ref WASMReader input)
+            : base(WASMSectionId.StartSection)
         {
-            FunctionId = module.Input.Read7BitEncodedInt();
+            FunctionId = input.ReadIntLEB128();
         }
 
-        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
+        protected override int GetBodySize()
         {
-            output.Write7BitEncodedInt(FunctionId);
+            return WASMReader.GetLEB128Size(FunctionId);
+        }
+
+        protected override void WriteBodyTo(ref WASMWriter output)
+        {
+            output.WriteLEB128(FunctionId);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Wazzy.Bytecode.Instructions.Memory
         public StoreF32Ins()
             : base(OPCode.StoreF32, true)
         { }
-        public StoreF32Ins(WASMReader input)
+        public StoreF32Ins(ref WASMReader input)
             : base(OPCode.StoreF32, input, true)
         { }
         public StoreF32Ins(int align, int offset)

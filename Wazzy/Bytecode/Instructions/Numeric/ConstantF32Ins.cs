@@ -8,7 +8,7 @@ namespace Wazzy.Bytecode.Instructions.Numeric
     {
         public float Constant { get; set; }
 
-        public ConstantF32Ins(WASMReader input)
+        public ConstantF32Ins(ref WASMReader input)
             : this(input.ReadSingle())
         { }
         public ConstantF32Ins(float constant = 0)
@@ -22,9 +22,11 @@ namespace Wazzy.Bytecode.Instructions.Numeric
             stack.Push(Constant);
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
             output.Write(Constant);
         }
+
+        protected override int GetBodySize() => sizeof(float);
     }
 }

@@ -6,8 +6,8 @@ namespace Wazzy.Bytecode.Instructions.Control
     {
         public int LabelIndex { get; set; }
 
-        public BranchIns(WASMReader input)
-            : this(input.Read7BitEncodedInt())
+        public BranchIns(ref WASMReader input)
+            : this(input.ReadIntLEB128())
         { }
         public BranchIns(int labelIndex = 0)
             : base(OPCode.Branch)
@@ -15,9 +15,11 @@ namespace Wazzy.Bytecode.Instructions.Control
             LabelIndex = labelIndex;
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(LabelIndex);
+            output.WriteLEB128(LabelIndex);
         }
+
+        protected override int GetBodySize() => WASMReader.GetLEB128Size(LabelIndex);
     }
 }

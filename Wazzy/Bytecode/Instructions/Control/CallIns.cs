@@ -6,8 +6,8 @@ namespace Wazzy.Bytecode.Instructions.Control
     {
         public int FunctionIndex { get; set; }
 
-        public CallIns(WASMReader input)
-            : this(input.Read7BitEncodedInt())
+        public CallIns(ref WASMReader input)
+            : this(input.ReadIntLEB128())
         { }
         public CallIns(int functionIndex = 0)
             : base(OPCode.Call)
@@ -15,9 +15,11 @@ namespace Wazzy.Bytecode.Instructions.Control
             FunctionIndex = functionIndex;
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(FunctionIndex);
+            output.WriteLEB128(FunctionIndex);
         }
+
+        protected override int GetBodySize() => WASMReader.GetLEB128Size(FunctionIndex);
     }
 }

@@ -8,25 +8,38 @@ namespace Wazzy.Sections
     /// </summary>
     public class TypeSection : WASMSectionEnumerable<FuncType>
     {
-        public TypeSection(WASMModule module)
-            : base(module, WASMSectionId.TypeSection)
+        public TypeSection(ref WASMReader input)
+            : base(WASMSectionId.TypeSection)
         {
-            Subsections.Capacity = module.Input.Read7BitEncodedInt();
+            Subsections.Capacity = input.ReadIntLEB128();
             for (int i = 0; i < Subsections.Capacity; i++)
             {
-                byte id = module.Input.ReadByte();
-                if (id != 0x60) System.Diagnostics.Debugger.Break();
-                Add(new FuncType(module));
+                input.ReadByte(); // FUNCTION_TYPE = 0x60
+                Add(new FuncType(ref input));
             }
         }
-
-        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
+        
+        protected override int GetBodySize()
         {
-            output.Write7BitEncodedInt(Subsections.Count);
+            int size = 0;
+            size += WASMReader.GetLEB128Size(Subsections.Count);
             foreach (FuncType functionType in Subsections)
             {
-                output.Write((byte)0x60);
-                functionType.WriteTo(output);
+                size += sizeof(byte);
+                size += functionType.GetSize();
+            }
+            return size;
+        }
+
+        protected override void WriteBodyTo(ref WASMWriter output)
+        {
+            const byte FUNCTION_TYPE = 0x60;
+
+            output.WriteLEB128(Subsections.Count);
+            foreach (FuncType functionType in Subsections)
+            {
+                output.Write(FUNCTION_TYPE);
+                functionType.WriteTo(ref output);
             }
         }
     }

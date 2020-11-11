@@ -1,30 +1,83 @@
 ﻿using System;
-using System.IO;
 using System.Text;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Wazzy.IO
 {
-    public class WASMWriter : BinaryWriter
+    public ref struct WASMWriter
     {
-        public int Position
-        {
-            get => (int)BaseStream.Position;
-            set => BaseStream.Position = value;
-        }
-        public int Length => (int)BaseStream.Length;
+        private int _position;
+        private readonly Span<byte> _data;
 
-        public WASMWriter()
-            : base(new MemoryStream())
-        { }
-        public WASMWriter(Stream output)
-            : base(output)
-        { }
-        public WASMWriter(Stream output, Encoding encoding)
-            : base(output, encoding)
-        { }
-        public WASMWriter(Stream output, Encoding encoding, bool leaveOpen)
-            : base(output, encoding, leaveOpen)
-        { }
+        public WASMWriter(Span<byte> data)
+        {
+            _data = data;
+            _position = 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(byte value) => _data[_position++] = value;
+
+        public void Write(ReadOnlySpan<byte> value)
+        {
+            value.CopyTo(_data.Slice(_position));
+            _position += value.Length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(bool value)
+        {
+            _data[_position++] = Unsafe.As<bool, byte>(ref value);
+        }
+
+        public void Write(int value)
+        {
+            MemoryMarshal.Write(_data.Slice(_position), ref value);
+            _position += sizeof(int);
+        }
+        public void Write(uint value)
+        {
+            MemoryMarshal.Write(_data.Slice(_position), ref value);
+            _position += sizeof(uint);
+        }
+        public void Write(float value)
+        {
+            MemoryMarshal.Write(_data.Slice(_position), ref value);
+            _position += sizeof(float);
+        }
+        public void Write(double value)
+        {
+            MemoryMarshal.Write(_data.Slice(_position), ref value);
+            _position += sizeof(double);
+        }
+
+        public void WriteLEB128(long value)
+        {
+            bool done;
+            do
+            {
+                byte b = (byte)value;
+                value >>= 6; //Keep the sign-bit
+                if (done = (value == 0 || value == -1))
+                {
+                    Write((byte)(b & 0x7F));
+                }
+                else
+                {
+                    value >>= 1; //Remove sign-bit
+                    Write((byte)(b | ~0x7Fu));
+                }
+            }
+            while (!done);
+        }
+        public void WriteULEB128(ulong value)
+        {
+            do Write((byte)((value & 0x7FUL) | ~0x7FU));
+            while ((value >>= 7) != 0);
+
+            _data[_position - 1] &= 0x7F;
+        }
 
         public void Write(Type valueType)
         {
@@ -37,28 +90,12 @@ namespace Wazzy.IO
                 default: break;
             }
         }
-
-        public new void Write7BitEncodedInt(int value)
+        public void WriteString(ReadOnlySpan<char> value)
         {
-            value |= 0;
-            while (true)
-            {
-                var b = (byte)(value & 0x7F);
-                value >>= 7;
+            WriteULEB128((uint)value.Length);
 
-                if ((value == 0 && (b & 0x40) == 0) || (value == -1 && (b & 0x40) != 0))
-                {
-                    Write(b);
-                    return;
-                }
-                Write((byte)(b | 0x80));
-            }
-        }
-        public void Write7BitEncodedString(string value)
-        {
-            byte[] valueData = Encoding.UTF8.GetBytes(value);
-            Write7BitEncodedInt(valueData.Length);
-            Write(valueData);
+            int len = Encoding.UTF8.GetBytes(value, _data.Slice(_position));
+            _position += len;
         }
     }
 }

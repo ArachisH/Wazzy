@@ -8,29 +8,39 @@ namespace Wazzy.Types
     public class Limits : WASMType
     {
         public int Minimum { get; set; }
-        public int Maxiumum { get; set; }
+        public int Maximum { get; set; }
         public bool HasMaximum { get; set; }
 
-        internal string DebuggerDisplay => $"Min: {Minimum:n0}; Max: {(HasMaximum ? (uint)Maxiumum : uint.MaxValue):n0}";
+        internal string DebuggerDisplay => $"Min: {Minimum:n0}; Max: {(HasMaximum ? (uint)Maximum : uint.MaxValue):n0}";
 
-        public Limits(WASMModule module)
+        public Limits(ref WASMReader input)
         {
-            HasMaximum = module.Input.ReadBoolean();
-            Minimum = module.Input.Read7BitEncodedInt();
+            HasMaximum = input.ReadBoolean();
+            Minimum = input.ReadIntLEB128();
             if (HasMaximum)
             {
-                Maxiumum = module.Input.Read7BitEncodedInt();
+                Maximum = input.ReadIntLEB128();
             }
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
             output.Write(HasMaximum);
-            output.Write7BitEncodedInt(Minimum);
+            output.WriteLEB128(Minimum);
             if (HasMaximum)
             {
-                output.Write7BitEncodedInt(Maxiumum);
+                output.WriteLEB128(Maximum);
             }
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += sizeof(byte);
+            size += WASMReader.GetLEB128Size(Minimum);
+            if (HasMaximum)
+                size += WASMReader.GetLEB128Size(Maximum);
+            return size;
         }
     }
 }

@@ -11,20 +11,28 @@ namespace Wazzy.Types
         public int Rank { get; }
         public Type Type { get; }
 
-        public Local(WASMModule module)
+        public Local(ref WASMReader input)
         {
-            Rank = module.Input.Read7BitEncodedInt();
-            _typeIndex = module.Input.Read7BitEncodedInt();
+            Rank = input.ReadIntLEB128();
+            _typeIndex = input.ReadIntLEB128();
             if (IsSupportedType(_typeIndex))
             {
                 Type = GetType(_typeIndex);
             }
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(Rank);
-            output.Write7BitEncodedInt(_typeIndex);
+            output.WriteLEB128(Rank);
+            output.WriteLEB128(_typeIndex);
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += WASMReader.GetLEB128Size(Rank);
+            size += WASMReader.GetLEB128Size(_typeIndex);
+            return size;
         }
     }
 }

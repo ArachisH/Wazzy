@@ -11,13 +11,15 @@ namespace Wazzy.Bytecode.Instructions.Variable
         {
             Id = id;
         }
-        public TeeLocalIns(WASMReader input)
-            : this(input.Read7BitEncodedInt())
+        public TeeLocalIns(ref WASMReader input)
+            : this(input.ReadIntLEB128())
         { }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(Id);
+            output.WriteLEB128(Id);
         }
+
+        protected override int GetBodySize() => WASMReader.GetLEB128Size(Id);
     }
 }

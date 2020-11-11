@@ -1,72 +1,183 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Text;
+using System.Numerics;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 using Wazzy.Types;
 using Wazzy.Bytecode;
 
 namespace Wazzy.IO
 {
-    public class WASMReader : BinaryReader
+    public ref struct WASMReader
     {
-        public int Position
+        private readonly ReadOnlySpan<byte> _data;
+
+        public int Position { get; set; }
+
+        public readonly int Length => _data.Length;
+        public readonly bool IsDataAvailable => Position < _data.Length;
+
+        public WASMReader(ReadOnlySpan<byte> data)
         {
-            get => (int)BaseStream.Position;
-            set => BaseStream.Position = value;
+            _data = data;
+            Position = 0;
         }
-        public int Length => (int)BaseStream.Length;
 
-        public WASMReader(byte[] data)
-            : base(new MemoryStream(data))
-        { }
-        public WASMReader(Stream input)
-            : base(input)
-        { }
-        public WASMReader(Stream input, bool leaveOpen)
-            : base(input, Encoding.UTF8, leaveOpen)
-        { }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte ReadByte() => _data[Position++];
 
-        public new int Read7BitEncodedInt()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> ReadBytes(int count)
+        {
+            ReadOnlySpan<byte> data = _data.Slice(Position, count);
+            Position += count;
+            return data;
+        }
+
+        public void ReadBytes(Span<byte> buffer)
+        {
+            _data.Slice(Position, buffer.Length).CopyTo(buffer);
+            Position += buffer.Length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ReadBoolean() => _data[Position++] == 1;
+
+        public int ReadInt32()
+        {
+            int value = MemoryMarshal.Read<int>(_data.Slice(Position));
+            Position += sizeof(int);
+            return value;
+        }
+        public uint ReadUInt32()
+        {
+            uint value = MemoryMarshal.Read<uint>(_data.Slice(Position));
+            Position += sizeof(uint);
+            return value;
+        }
+
+        public float ReadSingle()
+        {
+            float value = MemoryMarshal.Read<float>(_data.Slice(Position));
+            Position += sizeof(float);
+            return value;
+        }
+        public double ReadDouble()
+        {
+            double value = MemoryMarshal.Read<double>(_data.Slice(Position));
+            Position += sizeof(double);
+            return value;
+        }
+
+        public uint ReadIntULEB128()
         {
             uint result = 0;
+
             const int MaxRead = 5;
             for (int shift = 0; shift < MaxRead * 7; shift += 7)
             {
-                byte read = ReadByte();
-                result |= (read & 0x7Fu) << shift;
+                byte b = ReadByte();
+                result |= (b & 0x7Fu) << shift;
 
-                if (read <= 0x7Fu)
-                    return (int)result;
+                if (b <= 0x7Fu)
+                    return result;
             }
             throw new OverflowException();
         }
-        public Type ReadValueType() => WASMType.GetType(ReadByte());
-        public string Read7BitEncodedString() => ReadString(Read7BitEncodedInt());
-        public string ReadString(int length) => Encoding.UTF8.GetString(ReadBytes(length));
-        public byte[] ReadBytesUntil(int bufferSize, int bufferIncrementSize, byte endMark = 0x00)
+        public ulong ReadLongULEB128()
         {
-            byte[] data = null;
-            var dataShell = new byte[bufferSize];
-            for (int i = 0; i < dataShell.Length; i++)
+            ulong result = 0;
+
+            const int MaxRead = 10;
+            for (int shift = 0; shift < MaxRead * 7; shift += 7)
             {
-                dataShell[i] = ReadByte();
-                if (dataShell[i] == endMark)
-                {
-                    data = new byte[i + 1];
-                    Buffer.BlockCopy(dataShell, 0, data, 0, data.Length);
-                    return data;
-                }
-                else if (i == dataShell.Length - 1)
-                {
-                    var tempInstructions = new byte[dataShell.Length + bufferIncrementSize]; // Keep allocating bytes every time we run out of room.
-                    Buffer.BlockCopy(dataShell, 0, tempInstructions, 0, dataShell.Length);
-                    dataShell = tempInstructions;
-                }
+                byte b = ReadByte();
+                result |= (b & 0x7FUL) << shift;
+
+                if (b <= 0x7Fu)
+                    return result;
             }
-            return data;
+            throw new OverflowException();
         }
+
+        public int ReadIntLEB128()
+        {
+            byte b;
+            int shift = 0;
+            int result = 0;
+            do
+            {
+                b = ReadByte();
+
+                if (shift == 28 && b != 0 && b != 0x7F)
+                    throw new OverflowException();
+
+                result |= (b & 0x7F) << shift;
+                shift += 7;
+            } while ((b & 0x80) != 0);
+
+            if (shift < 32 && (b & 0x40) != 0)
+                result |= -1 << shift; //sign extend
+
+            return result;
+        }
+        public long ReadLongLEB128()
+        {
+            byte b;
+            int shift = 0;
+            long result = 0;
+            do
+            {
+                b = ReadByte();
+
+                if (shift == 63 && b != 0 && b != 0x7F)
+                    throw new OverflowException();
+
+                result |= (b & 0x7FL) << shift;
+                shift += 7;
+            } while ((b & 0x80) != 0);
+
+            if (shift < 64 && (b & 0x40) != 0)
+                result |= -1L << shift; //sign extend
+
+            return result;
+        }
+
+        /// <summary>
+        /// Return the number of bytes required to encode unsigned integer using LEB128 encoding.
+        /// </summary>
+        public static int GetULEB128Size(ulong value)
+        {
+            // Black magic provided to us kindly by AOSP source <3, modified for 64-bit values
+            
+            // bits_to_encode = (data != 0) ? 64 - CLZ(x) : 1  // 64 - CLZ(data | 1)
+            // bytes = ceil(bits_to_encode / 7.0);             // (6 + bits_to_encode) / 7
+            int x = 6 + 64 - BitOperations.LeadingZeroCount(value | 1UL);
+            // Division by 7 is done by (x * 37) >> 8 where 37 = ceil(256 / 7).
+            // This works for 0 <= x < 256 / (7 * 37 - 256), i.e. 0 <= x <= 85.
+            return (x * 37) >> 8;
+        }
+        /// <summary>
+        /// Return the number of bytes required to encode signed integer using LEB128 encoding.
+        /// </summary>
+        public static int GetLEB128Size(long value)
+        {
+            // Same as unsigned size calculation but we have to account for the sign bit
+            value ^= value >> 63;
+            int x = 1 + 6 + 64 - BitOperations.LeadingZeroCount((ulong)value | 1UL);
+            return (x * 37) >> 8;
+        }
+
+        /// <summary>
+        /// Returns a ULEB128 length-prefixed UTF8 string.
+        /// </summary>
+        public string ReadString() => ReadString((int)ReadIntULEB128());
+        public string ReadString(int length) => Encoding.UTF8.GetString(ReadBytes(length));
+
+        public Type ReadValueType() => WASMType.GetType(ReadByte());
 
         public List<WASMInstruction> ReadExpression() => ReadExpression(-1, null);
         public List<WASMInstruction> ReadExpression(int byteReadLimit) => ReadExpression(byteReadLimit, null);
@@ -79,7 +190,7 @@ namespace Wazzy.IO
             while (Position < Length)
             {
                 var op = (OPCode)ReadByte();
-                var instruction = WASMInstruction.Create(op, this);
+                var instruction = WASMInstruction.Create(op, ref this);
 
                 expression.Add(instruction);
                 if (byteReadLimit == -1) // Nested expression, return to upper level if marked as exit operation code.
@@ -91,18 +202,6 @@ namespace Wazzy.IO
 
             }
             return expression;
-        }
-
-        public static int Get7BitEncodedIntSize(int value)
-        {
-            int size = 1;
-            var uValue = (uint)value;
-            while (uValue >= 0x80)
-            {
-                size++;
-                uValue >>= 7;
-            }
-            return size;
         }
     }
 }

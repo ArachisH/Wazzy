@@ -5,22 +5,33 @@ namespace Wazzy.Sections
 {
     public class GlobalSection : WASMSectionEnumerable<GlobalSubsection>
     {
-        public GlobalSection(WASMModule module)
-            : base(module, WASMSectionId.GlobalSection)
+        public GlobalSection(ref WASMReader input)
+            : base(WASMSectionId.GlobalSection)
         {
-            Subsections.Capacity = module.Input.Read7BitEncodedInt();
+            Subsections.Capacity = input.ReadIntLEB128();
             for (int i = 0; i < Subsections.Capacity; i++)
             {
-                Add(new GlobalSubsection(module));
+                Add(new GlobalSubsection(ref input));
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
+        protected override int GetBodySize()
         {
-            output.Write7BitEncodedInt(Subsections.Count);
+            int size = 0;
+            size += WASMReader.GetLEB128Size(Subsections.Count);
             foreach (GlobalSubsection global in Subsections)
             {
-                global.WriteTo(output);
+                size += global.GetSize();
+            }
+            return size;
+        }
+
+        protected override void WriteBodyTo(ref WASMWriter output)
+        {
+            output.WriteLEB128(Subsections.Count);
+            foreach (GlobalSubsection global in Subsections)
+            {
+                global.WriteTo(ref output);
             }
         }
     }

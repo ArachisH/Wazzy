@@ -13,31 +13,48 @@ namespace Wazzy.Sections.Subsections
         public int Offset { get; }
         public List<WASMInstruction> Expression { get; set; }
 
-        public ElementSubsection(WASMModule module)
+        public ElementSubsection(WASMModule module, ref WASMReader input)
         {
-            TableIndex = module.Input.Read7BitEncodedInt();
-            Expression = module.Input.ReadExpression();
+            TableIndex = input.ReadIntLEB128();
+            Expression = input.ReadExpression();
             Offset = (int)WASMMachine.Execute(Expression, module).Pop();
-            FunctionTypeIndices = new int[module.Input.Read7BitEncodedInt()];
+            FunctionTypeIndices = new int[input.ReadIntLEB128()];
             for (int i = 0; i < FunctionTypeIndices.Length; i++)
             {
-                FunctionTypeIndices[i] = module.Input.Read7BitEncodedInt();
+                FunctionTypeIndices[i] = input.ReadIntLEB128();
             }
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(TableIndex);
+            output.WriteLEB128(TableIndex);
             foreach (WASMInstruction instruction in Expression)
             {
-                instruction.WriteTo(output);
+                instruction.WriteTo(ref output);
             }
 
-            output.Write7BitEncodedInt(FunctionTypeIndices.Length);
+            output.WriteLEB128(FunctionTypeIndices.Length);
             foreach (int functionTypeIndex in FunctionTypeIndices)
             {
-                output.Write7BitEncodedInt(functionTypeIndex);
+                output.WriteLEB128(functionTypeIndex);
             }
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += WASMReader.GetLEB128Size(TableIndex);
+            foreach (WASMInstruction instruction in Expression)
+            {
+                size += instruction.GetSize();
+            }
+            
+            size += WASMReader.GetLEB128Size(FunctionTypeIndices.Length);
+            foreach (int functionTypeIndex in FunctionTypeIndices)
+            {
+                size += WASMReader.GetLEB128Size(functionTypeIndex);
+            }
+            return size;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 using Wazzy.IO;
 
@@ -9,14 +10,14 @@ namespace Wazzy.Sections
         public string Name { get; }
         public byte[] Data { get; set; }
 
-        public CustomSection(WASMModule module)
-            : base(module, WASMSectionId.CustomSection)
+        public CustomSection(int length, ref WASMReader input)
+            : base(WASMSectionId.CustomSection)
         {
-            int possibleNameLength = module.Input.Read7BitEncodedInt();
-            Name = module.Input.ReadString(possibleNameLength);
+            int possibleNameLength = input.ReadIntLEB128();
+            Name = input.ReadString(possibleNameLength);
 
-            int leftOverSectionData = Size - possibleNameLength - WASMReader.Get7BitEncodedIntSize(possibleNameLength);
-            Data = module.Input.ReadBytes(leftOverSectionData);
+            int leftOverSectionData = length - possibleNameLength - WASMReader.GetLEB128Size(possibleNameLength);
+            Data = input.ReadBytes(leftOverSectionData).ToArray();
 
             if (leftOverSectionData != Data.Length)
             {
@@ -24,9 +25,18 @@ namespace Wazzy.Sections
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output, int globalPosition)
+        protected override int GetBodySize()
         {
-            output.Write7BitEncodedString(Name);
+            int size = 0;
+            size += WASMReader.GetLEB128Size(Name.Length);
+            size += Encoding.UTF8.GetByteCount(Name);
+            size += Data.Length;
+            return size;
+        }
+
+        protected override void WriteBodyTo(ref WASMWriter output)
+        {
+            output.WriteString(Name);
             output.Write(Data);
         }
     }

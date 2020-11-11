@@ -7,7 +7,7 @@ namespace Wazzy.Bytecode.Instructions.Memory
         public LoadI64_32UIns()
             : base(OPCode.LoadI64_32U, true)
         { }
-        public LoadI64_32UIns(WASMReader input)
+        public LoadI64_32UIns(ref WASMReader input)
             : base(OPCode.LoadI64_32U, input, true)
         { }
         public LoadI64_32UIns(int align, int offset)

@@ -13,8 +13,8 @@ namespace Wazzy.Bytecode.Instructions.Variable
         {
             Id = id;
         }
-        public GetGlobalIns(WASMReader input)
-            : this(input.Read7BitEncodedInt())
+        public GetGlobalIns(ref WASMReader input)
+            : this(input.ReadIntLEB128())
         { }
 
         public override void Execute(Stack<object> stack, WASMModule context)
@@ -22,9 +22,11 @@ namespace Wazzy.Bytecode.Instructions.Variable
             WASMMachine.Execute(context.GlobalSec[Id].Expression, context, stack);
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(Id);
+            output.WriteLEB128(Id);
         }
+
+        protected override int GetBodySize() => WASMReader.GetLEB128Size(Id);
     }
 }

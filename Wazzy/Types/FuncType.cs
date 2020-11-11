@@ -34,36 +34,47 @@ namespace Wazzy.Types
         public List<Type> ResultTypes { get; }
         public List<Type> ParameterTypes { get; }
 
-        public FuncType(WASMModule module)
+        public FuncType(ref WASMReader input)
         {
-            ParameterTypes = new List<Type>(module.Input.Read7BitEncodedInt());
+            ParameterTypes = new List<Type>(input.ReadIntLEB128());
             for (int i = 0; i < ParameterTypes.Capacity; i++)
             {
-                Type paramType = module.Input.ReadValueType();
+                Type paramType = input.ReadValueType();
                 ParameterTypes.Add(paramType);
             }
 
-            ResultTypes = new List<Type>(module.Input.Read7BitEncodedInt());
+            ResultTypes = new List<Type>(input.ReadIntLEB128());
             for (int i = 0; i < ResultTypes.Capacity; i++)
             {
-                Type resultType = module.Input.ReadValueType();
+                Type resultType = input.ReadValueType();
                 ResultTypes.Add(resultType);
             }
         }
 
-        public override void WriteTo(WASMWriter output)
+        public override void WriteTo(ref WASMWriter output)
         {
-            output.Write7BitEncodedInt(ParameterTypes.Count);
+            output.WriteLEB128(ParameterTypes.Count);
             foreach (Type parameterType in ParameterTypes)
             {
                 output.Write(parameterType);
             }
 
-            output.Write7BitEncodedInt(ResultTypes.Count);
+            output.WriteLEB128(ResultTypes.Count);
             foreach (Type resultType in ResultTypes)
             {
                 output.Write(resultType);
             }
+        }
+
+        public override int GetSize()
+        {
+            int size = 0;
+            size += WASMReader.GetLEB128Size(ParameterTypes.Count);
+            size += ParameterTypes.Count * sizeof(byte);
+
+            size += WASMReader.GetLEB128Size(ResultTypes.Count);
+            size += ResultTypes.Count * sizeof(byte);
+            return size;
         }
     }
 }

@@ -25,18 +25,24 @@ namespace Wazzy.Bytecode.Instructions.Memory
         {
             if (_hasMemoryArguments = hasMemoryArguments)
             {
-                Align = input.Read7BitEncodedInt();
-                Offset = input.Read7BitEncodedInt();
+                Align = input.ReadIntLEB128();
+                Offset = input.ReadIntLEB128();
             }
         }
 
-        protected override void WriteBodyTo(WASMWriter output)
+        protected override void WriteBodyTo(ref WASMWriter output)
         {
             if (_hasMemoryArguments)
             {
-                output.Write7BitEncodedInt(Align);
-                output.Write7BitEncodedInt(Offset);
+                output.WriteLEB128(Align);
+                output.WriteLEB128(Offset);
             }
+        }
+
+        protected override int GetBodySize()
+        {
+            return _hasMemoryArguments ? 
+                WASMReader.GetLEB128Size(Align) + WASMReader.GetLEB128Size(Offset) : 0;
         }
     }
 }

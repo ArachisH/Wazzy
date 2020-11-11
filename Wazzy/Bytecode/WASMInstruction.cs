@@ -23,29 +23,42 @@ namespace Wazzy.Bytecode
         public virtual void Execute(Stack<object> stack, WASMModule context)
         { }
 
-        public override void WriteTo(WASMWriter output)
+        public override int GetSize()
+        {
+            int size = 0;
+            size += sizeof(byte);
+            size += GetBodySize();
+            return size;
+        }
+        protected virtual int GetBodySize()
+        {
+            return 0;
+        }
+
+        public override void WriteTo(ref WASMWriter output)
         {
             output.Write((byte)OP);
-            WriteBodyTo(output);
+            WriteBodyTo(ref output);
         }
-        protected virtual void WriteBodyTo(WASMWriter output)
+        protected virtual void WriteBodyTo(ref WASMWriter output)
         { }
 
-        public static WASMInstruction Create(OPCode op, WASMReader input = null) => op switch
+        public static WASMInstruction Create(ref WASMReader input) => Create((OPCode)input.ReadByte(), ref input);
+        public static WASMInstruction Create(OPCode op, ref WASMReader input) => op switch
         {
             // Control
             OPCode.Unreachable => new UnreachableIns(),
             OPCode.Nop => new NopIns(),
-            OPCode.Block => new BlockIns(input),
-            OPCode.Loop => new LoopIns(input),
-            OPCode.If => new IfIns(input),
-            OPCode.Branch => new BranchIns(input),
-            OPCode.BranchIf => new BranchIfIns(input),
-            OPCode.BranchTable => new BranchTableIns(input),
+            OPCode.Block => new BlockIns(ref input),
+            OPCode.Loop => new LoopIns(ref input),
+            OPCode.If => new IfIns(ref input),
+            OPCode.Branch => new BranchIns(ref input),
+            OPCode.BranchIf => new BranchIfIns(ref input),
+            OPCode.BranchTable => new BranchTableIns(ref input),
             OPCode.Else => new ElseIns(),
             OPCode.Return => new ReturnIns(),
-            OPCode.Call => new CallIns(input),
-            OPCode.CallIndirect => new CallIndirectIns(input),
+            OPCode.Call => new CallIns(ref input),
+            OPCode.CallIndirect => new CallIndirectIns(ref input),
             OPCode.End => new EndIns(),
 
             // Parametric
@@ -53,10 +66,10 @@ namespace Wazzy.Bytecode
             OPCode.Select => new SelectIns(),
 
             // Numeric
-            OPCode.ConstantI32 => new ConstantI32Ins(input),
-            OPCode.ConstantI64 => new ConstantI64Ins(input),
-            OPCode.ConstantF32 => new ConstantF32Ins(input),
-            OPCode.ConstantF64 => new ConstantF64Ins(input),
+            OPCode.ConstantI32 => new ConstantI32Ins(ref input),
+            OPCode.ConstantI64 => new ConstantI64Ins(ref input),
+            OPCode.ConstantF32 => new ConstantF32Ins(ref input),
+            OPCode.ConstantF64 => new ConstantF64Ins(ref input),
             OPCode.EqualZeroI32 => new EqualZeroI32Ins(),
             OPCode.EqualI32 => new EqualI32Ins(),
             OPCode.AddI32 => new AddI32Ins(),
@@ -127,32 +140,31 @@ namespace Wazzy.Bytecode
             OPCode.NegateF32 => new NegateF32Ins(),
 
             // Variable
-            OPCode.GetLocal => new GetLocalIns(input),
-            OPCode.SetLocal => new SetLocalIns(input),
-            OPCode.TeeLocal => new TeeLocalIns(input),
-            OPCode.GetGlobal => new GetGlobalIns(input),
-            OPCode.SetGlobal => new SetGlobalIns(input),
+            OPCode.GetLocal => new GetLocalIns(ref input),
+            OPCode.SetLocal => new SetLocalIns(ref input),
+            OPCode.TeeLocal => new TeeLocalIns(ref input),
+            OPCode.GetGlobal => new GetGlobalIns(ref input),
+            OPCode.SetGlobal => new SetGlobalIns(ref input),
 
             // Memory
-            OPCode.LoadI32 => new LoadI32Ins(input),
-            OPCode.LoadI64 => new LoadI64Ins(input),
-            OPCode.LoadI64_8S => new LoadI64_8SIns(input),
-            OPCode.LoadI64_32U => new LoadI64_32UIns(input),
-            OPCode.LoadF32 => new LoadF32Ins(input),
-            OPCode.LoadI32_8S => new LoadI32_8SIns(input),
-            OPCode.LoadI32_8U => new LoadI32_8UIns(input),
-            OPCode.LoadF64 => new LoadF64Ins(input),
-            OPCode.StoreI32 => new StoreI32Ins(input),
-            OPCode.StoreI32_8 => new StoreI32_8Ins(input),
-            OPCode.StoreI32_16=> new StoreI32_16Ins(input),
-            OPCode.LoadI32_16S => new LoadI32_16SIns(input),
-            OPCode.StoreI64 => new StoreI64Ins(input),
-            OPCode.StoreF32 => new StoreF32Ins(input),
-            OPCode.MemoryGrow => new MemoryGrowIns(input),
-            OPCode.MemorySize => new MemorySizeIns(input),
+            OPCode.LoadI32 => new LoadI32Ins(ref input),
+            OPCode.LoadI64 => new LoadI64Ins(ref input),
+            OPCode.LoadI64_8S => new LoadI64_8SIns(ref input),
+            OPCode.LoadI64_32U => new LoadI64_32UIns(ref input),
+            OPCode.LoadF32 => new LoadF32Ins(ref input),
+            OPCode.LoadI32_8S => new LoadI32_8SIns(ref input),
+            OPCode.LoadI32_8U => new LoadI32_8UIns(ref input),
+            OPCode.LoadF64 => new LoadF64Ins(ref input),
+            OPCode.StoreI32 => new StoreI32Ins(ref input),
+            OPCode.StoreI32_8 => new StoreI32_8Ins(ref input),
+            OPCode.StoreI32_16=> new StoreI32_16Ins(ref input),
+            OPCode.LoadI32_16S => new LoadI32_16SIns(ref input),
+            OPCode.StoreI64 => new StoreI64Ins(ref input),
+            OPCode.StoreF32 => new StoreF32Ins(ref input),
+            OPCode.MemoryGrow => new MemoryGrowIns(ref input),
+            OPCode.MemorySize => new MemorySizeIns(ref input),
 
             _ => throw new NotImplementedException($"This instruction has not yet been implemented or does not exist in the specification. {op}(0x{(byte)op:X2})")
         };
-        public static WASMInstruction Create(WASMReader input) => Create((OPCode)input.ReadByte(), input);
     }
 }
